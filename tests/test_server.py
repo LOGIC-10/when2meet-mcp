@@ -112,7 +112,7 @@ def test_parse_poll_url():
     (["2026/09/10"], 9, 18, "UTC"),
     (["2026-02-30"], 9, 18, "UTC"),
     (["2026-09-10"], 18, 9, "UTC"),
-    (["2026-09-10"], 9, 24, "UTC"),
+    (["2026-09-10"], 9, 25, "UTC"),
     (["2026-09-10"], 9, 18, "Mars/Olympus"),
 ])
 def test_validate_create_args_rejects(dates, earliest, latest, tz):
@@ -120,6 +120,67 @@ def test_validate_create_args_rejects(dates, earliest, latest, tz):
         server._validate_create_args(dates, earliest, latest, tz)
 
 
+def test_bad_timezone_is_value_error():
+    with pytest.raises(ValueError, match="Unknown IANA timezone"):
+        server._check_tz("Mars/Olympus")
+
+
 def test_parse_grid_without_grid_raises():
     with pytest.raises(RuntimeError):
         server.parse_grid("<html><body>nothing</body></html>")
+
+
+# ─── Four people, three days (2026-09-14..16, 09-18 Asia/Shanghai) ──────
+# Ground truth verified slot-by-slot against the poll page's AvailableAtSlot
+# and window-by-window against a brute-force search (see git history).
+
+FIXTURE4 = Path(__file__).parent / "fixtures" / "grid_four_people_three_days.html"
+
+
+@pytest.fixture(scope="module")
+def results4():
+    return server.parse_grid(FIXTURE4.read_text(), tz="Asia/Shanghai")
+
+
+def test_names_are_unescaped(results4):
+    assert results4["participants"] == ["Alice", "Bob", "Zoë O'Brien", "王小明"]
+
+
+def test_decode_name():
+    assert server._decode_name("Zoë O\\&#039;Brien") == "Zoë O'Brien"
+    assert server._decode_name("A &amp; B") == "A & B"
+    assert server._decode_name("plain") == "plain"
+
+
+def test_four_people_slot_count(results4):
+    assert len(results4["slots"]) == 108
+    assert sum(len(s["free"]) for s in results4["slots"]) == 116
+
+
+def test_four_people_best_windows(results4):
+    wins = server.best_windows(results4, min_attendees=2, min_duration_minutes=30)
+    summary = [(w["date"], w["start"][11:16], w["end"][11:16], w["duration_minutes"], w["attendees"]) for w in wins]
+    assert summary == [
+        ("Sep 14", "11:00", "11:30", 30, ["Alice", "Bob", "Zoë O'Brien"]),
+        ("Sep 15", "14:30", "15:00", 30, ["Alice", "Bob", "王小明"]),
+        ("Sep 16", "09:00", "18:00", 540, ["Bob", "Zoë O'Brien"]),
+        ("Sep 14", "10:00", "12:00", 120, ["Alice", "Bob"]),
+        ("Sep 15", "14:30", "16:00", 90, ["Alice", "王小明"]),
+        ("Sep 15", "14:00", "15:00", 60, ["Alice", "Bob"]),
+    ]
+
+
+def test_four_people_three_attendees(results4):
+    wins = server.best_windows(results4, min_attendees=3, min_duration_minutes=30)
+    assert [w["attendees"] for w in wins] == [
+        ["Alice", "Bob", "Zoë O'Brien"], ["Alice", "Bob", "王小明"]]
+    assert server.best_windows(results4, min_attendees=4, min_duration_minutes=15) == []
+
+
+@pytest.mark.parametrize("latest,ok", [(0, True), (24, True), (23, True), (25, False), (9, False)])
+def test_validate_latest_hour_midnight(latest, ok):
+    if ok:
+        server._validate_create_args(["2026-09-20"], 9, latest, "UTC")
+    else:
+        with pytest.raises(ValueError):
+            server._validate_create_args(["2026-09-20"], 9, latest, "UTC")

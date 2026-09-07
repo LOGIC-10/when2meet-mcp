@@ -54,7 +54,7 @@ python server.py best --url "https://when2meet.com/?12345-ABCDE" --min-people 2 
 
 | Tool | Description |
 |------|-------------|
-| `create_poll` | Create a new availability poll. Returns the shareable URL. |
+| `create_poll` | Create a new availability poll. `latest_hour` 0 or 24 means midnight. Returns the shareable URL. |
 | `get_poll_results` | Read who is free at each 15-min slot, sorted by time. Optional `timezone`. Read-only. |
 | `find_best_slot` | Maximal contiguous windows where the same people are free for the whole window (attendees = intersection). Sorted by attendee count, then duration. Read-only. |
 
@@ -76,6 +76,10 @@ ground truth was verified on the live poll page:
 pip install -r requirements-dev.txt
 python -m pytest -q
 ```
+
+The fixtures cover a 2-person/2-day poll and a 4-person/3-day poll with
+non-ASCII and apostrophe names; the tool wrappers work with both MCP SDK 1.x
+and 2.x and surface validation/HTTP errors as tool errors.
 
 ## License
 

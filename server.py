@@ -14,11 +14,12 @@ Usage:
 """
 import re
 import sys
+import html as html_lib
 import json
 import asyncio
 import argparse
 from datetime import datetime, timedelta, timezone
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import httpx
 from bs4 import BeautifulSoup
@@ -50,14 +51,33 @@ def _validate_create_args(dates: list[str], earliest_hour: int,
         raise ValueError(f"dates must be YYYY-MM-DD, got: {bad}")
     for d in dates:
         datetime.strptime(d, "%Y-%m-%d")  # raises on impossible dates
-    if not (0 <= earliest_hour <= 23 and 0 <= latest_hour <= 23):
-        raise ValueError("earliest_hour and latest_hour must be in 0..23")
-    if earliest_hour >= latest_hour:
+    if not (0 <= earliest_hour <= 23):
+        raise ValueError("earliest_hour must be in 0..23")
+    if not (0 <= latest_hour <= 24):
+        raise ValueError("latest_hour must be in 0..24 (0 or 24 = midnight)")
+    if earliest_hour >= _end_hour(latest_hour):
         raise ValueError("earliest_hour must be before latest_hour")
-    ZoneInfo(tz)  # raises ZoneInfoNotFoundError on unknown tz
+    _check_tz(tz)
+
+
+def _check_tz(tz: str) -> None:
+    try:
+        ZoneInfo(tz)
+    except (ZoneInfoNotFoundError, ValueError) as exc:
+        raise ValueError(f"Unknown IANA timezone: {tz!r}") from exc
+
+
+def _end_hour(latest_hour: int) -> int:
+    """When2Meet encodes an end of midnight as 0; treat 0 and 24 alike."""
+    return 24 if latest_hour in (0, 24) else latest_hour
 
 
 # ─── Pure parsing (no network; unit-tested) ─────────────────────────
+
+def _decode_name(raw: str) -> str:
+    """Undo the site's addslashes() + htmlspecialchars() on participant names."""
+    return re.sub(r"\\(.)", r"\1", html_lib.unescape(raw))
+
 
 def parse_grid(html: str, tz: str = "UTC") -> dict:
     """Parse the HTML returned by AvailabilityGrids.php into structured data.
@@ -91,7 +111,8 @@ def parse_grid(html: str, tz: str = "UTC") -> dict:
     rows = max(int(el["data-row"]) for el in slot_els) + 1
     total_slots = len(slot_els)
 
-    names = re.findall(r"PeopleNames\[\d+\]\s*=\s*'([^']*)'", html)
+    names = [_decode_name(n) for n in
+             re.findall(r"PeopleNames\[\d+\]\s*=\s*'((?:[^'\\]|\\.)*)'", html)]
     hexes = re.findall(r"hexAvailability:\s*([0-9a-fA-F]+)", html)
     masks = [bin(int(h, 16))[2:].zfill(total_slots) for h in hexes]
     if any(len(m) > total_slots for m in masks):
@@ -214,7 +235,7 @@ async def create_poll(
         event_name: Title shown on the poll page, e.g. "Weekly sync".
         dates: Candidate dates to poll, in YYYY-MM-DD format.
         earliest_hour: Earliest selectable hour (0-23). Default 9.
-        latest_hour: Latest selectable hour (0-23). Default 18.
+        latest_hour: End hour (1-24; 0 or 24 = midnight). Default 18.
         tz: IANA timezone string. Default "Asia/Shanghai".
 
     Returns:
@@ -232,7 +253,7 @@ async def create_poll(
                 "DateTypes": "SpecificDates",
                 "PossibleDates": "|".join(dates),
                 "NoEarlierThan": str(earliest_hour),
-                "NoLaterThan": str(latest_hour),
+                "NoLaterThan": str(_end_hour(latest_hour) % 24),
                 "TimeZone": tz,
             },
             headers={"Referer": f"{W2M_BASE}/"},
@@ -260,7 +281,7 @@ async def get_poll_results(poll_url: str, tz: str = "UTC") -> dict:
         sorted by time.
     """
     eid, code = _parse_poll_url(poll_url)
-    ZoneInfo(tz)
+    _check_tz(tz)
     async with httpx.AsyncClient(timeout=HTTP_TIMEOUT) as client:
         resp = await client.post(
             f"{W2M_BASE}/AvailabilityGrids.php",
@@ -298,20 +319,25 @@ async def find_best_slot(
 
 # ─── MCP server ─────────────────────────────────────────────────────
 
-def _load_mcp_server_class():
-    """Return the server class for whichever MCP SDK major version is installed."""
+def _load_mcp_sdk():
+    """Return (server class, ToolError) for whichever MCP SDK major is installed."""
     try:  # SDK 2.x
         from mcp.server.mcpserver import MCPServer
-        return MCPServer
+        from mcp.server.mcpserver.exceptions import ToolError
+        return MCPServer, ToolError
     except ImportError:
         pass
     from mcp.server.fastmcp import FastMCP  # SDK 1.x
-    return FastMCP
+    from mcp.server.fastmcp.exceptions import ToolError
+    return FastMCP, ToolError
+
+
+TOOL_ERRORS = (ValueError, RuntimeError, httpx.HTTPError)
 
 
 def run_mcp_server() -> None:
     try:
-        server_cls = _load_mcp_server_class()
+        server_cls, tool_error = _load_mcp_sdk()
     except ImportError as exc:
         print(f"MCP SDK import failed: {exc}", file=sys.stderr)
         print("Install with: pip install 'mcp[cli]'  "
@@ -326,14 +352,20 @@ def run_mcp_server() -> None:
                                earliest_hour: int = 9, latest_hour: int = 18,
                                timezone: str = "Asia/Shanghai") -> str:
         """Create a poll. Share the URL, then read results."""
-        return await create_poll(event_name, dates, earliest_hour,
-                                 latest_hour, timezone)
+        try:
+            return await create_poll(event_name, dates, earliest_hour,
+                                     latest_hour, timezone)
+        except TOOL_ERRORS as exc:
+            raise tool_error(str(exc)) from exc
 
     @mcp.tool(title="Read Poll Results",
               annotations={"readOnlyHint": True})
     async def get_poll_results_tool(poll_url: str, timezone: str = "UTC") -> dict:
         """Read who is free at each 15-min slot. Read-only."""
-        return await get_poll_results(poll_url, timezone)
+        try:
+            return await get_poll_results(poll_url, timezone)
+        except TOOL_ERRORS as exc:
+            raise tool_error(str(exc)) from exc
 
     @mcp.tool(title="Find Best Meeting Slot",
               annotations={"readOnlyHint": True})
@@ -342,8 +374,11 @@ def run_mcp_server() -> None:
                                   min_duration_minutes: int = 30,
                                   timezone: str = "UTC") -> list[dict]:
         """Find best contiguous windows. Sorted by attendees. Read-only."""
-        return await find_best_slot(poll_url, min_attendees,
-                                    min_duration_minutes, timezone)
+        try:
+            return await find_best_slot(poll_url, min_attendees,
+                                        min_duration_minutes, timezone)
+        except TOOL_ERRORS as exc:
+            raise tool_error(str(exc)) from exc
 
     mcp.run()
 
