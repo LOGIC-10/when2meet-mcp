@@ -184,3 +184,17 @@ def test_validate_latest_hour_midnight(latest, ok):
     else:
         with pytest.raises(ValueError):
             server._validate_create_args(["2026-09-20"], 9, latest, "UTC")
+# ─── vote_on_behalf validation ─────────────────────────────────────
+
+def test_vote_rejects_empty_name():
+    import asyncio
+    with pytest.raises(ValueError, match="name"):
+        asyncio.run(server.vote_on_behalf(
+            "https://when2meet.com/?1-ABC", "", []))
+
+
+def test_vote_rejects_bad_url():
+    import asyncio
+    with pytest.raises(ValueError, match="poll URL"):
+        asyncio.run(server.vote_on_behalf(
+            "https://when2meet.com/", "Alice", []))

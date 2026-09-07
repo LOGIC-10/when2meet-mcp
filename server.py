@@ -108,8 +108,20 @@ def parse_grid(html: str, tz: str = "UTC") -> dict:
     if not slot_els:
         raise RuntimeError("No availability grid found in response "
                            "(wrong poll id/code, or site markup changed)")
-    rows = max(int(el["data-row"]) for el in slot_els) + 1
     total_slots = len(slot_els)
+
+    # The bitmask is in column-major order, but columns may have different
+    # numbers of rows (e.g. a leading time-label column with fewer rows).
+    # Build cumulative per-column offsets instead of assuming equal heights.
+    col_counts: dict[int, int] = {}
+    for el in slot_els:
+        c = int(el["data-col"])
+        col_counts[c] = col_counts.get(c, 0) + 1
+    col_offsets: dict[int, int] = {}
+    running = 0
+    for c in sorted(col_counts):
+        col_offsets[c] = running
+        running += col_counts[c]
 
     names = [_decode_name(n) for n in
              re.findall(r"PeopleNames\[\d+\]\s*=\s*'((?:[^'\\]|\\.)*)'", html)]
@@ -122,7 +134,7 @@ def parse_grid(html: str, tz: str = "UTC") -> dict:
     slots = []
     for el in slot_els:
         col, row = int(el["data-col"]), int(el["data-row"])
-        k = col * rows + row
+        k = col_offsets[col] + row
         free = [names[p] for p in range(min(len(names), len(masks)))
                 if masks[p][k] == "1"]
         dt = datetime.fromtimestamp(int(el["data-time"]), tz=zone)
@@ -317,6 +329,77 @@ async def find_best_slot(
     return best_windows(results, min_attendees, min_duration_minutes)
 
 
+async def vote_on_behalf(
+    poll_url: str,
+    name: str,
+    free_times: list[str],
+    password: str = "",
+    tz: str = "UTC",
+) -> dict:
+    """Submit availability on behalf of a participant.
+
+    Registers *name* (or reuses the existing identity if already logged in)
+    and marks the given time slots as available. Existing availability is
+    fully replaced — pass every slot the person is free for.
+
+    Args:
+        poll_url: The When2Meet poll URL.
+        name: Display name to vote under.
+        free_times: List of ISO 8601 timestamps for 15-minute slots the
+            person is free. Use get_poll_results to list available slot
+            times, then pick the ones the person can attend.
+        password: Optional poll password. Empty string if the poll has none.
+        tz: IANA timezone for interpreting *free_times*. Default "UTC".
+
+    Returns:
+        Summary dict with participant name and number of slots marked.
+    """
+    eid, code = _parse_poll_url(poll_url)
+    if not name.strip():
+        raise ValueError("name must not be empty")
+    free_iso = set(free_times)
+
+    async with httpx.AsyncClient(timeout=HTTP_TIMEOUT) as client:
+        # Load the poll page to extract TimeOfSlot[] (canonical slot list).
+        page = await client.get(poll_url)
+        time_slots = re.findall(r"TimeOfSlot\[(\d+)\]=(\d+);", page.text)
+        time_map = {int(i): int(ts) for i, ts in time_slots}
+        if not time_map:
+            raise RuntimeError("Could not load TimeOfSlot from poll page")
+
+        # Register / log in; ProcessLogin returns the numeric person ID.
+        login_resp = await client.post(f"{W2M_BASE}/ProcessLogin.php", data={
+            "id": eid, "name": name, "password": password,
+        })
+        person_id = login_resp.text.strip()
+
+        # Build binary and toggle list in TimeOfSlot order.
+        zone = ZoneInfo(tz)
+        binary_parts = []
+        toggle_indices = []
+        for idx in range(len(time_map)):
+            ts = time_map[idx]
+            dt = datetime.fromtimestamp(ts, tz=timezone.utc).astimezone(zone)
+            if dt.isoformat() in free_iso:
+                binary_parts.append("1")
+                toggle_indices.append(idx)
+            else:
+                binary_parts.append("0")
+        binary = "".join(binary_parts)
+
+        resp = await client.post(f"{W2M_BASE}/SaveTimes.php", data={
+            "person": person_id,
+            "event": eid,
+            "slots": ",".join(str(i) for i in toggle_indices),
+            "availability": binary,
+            "password": password,
+            "ChangeToAvailable": "true",
+        })
+        resp.raise_for_status()
+
+    return {"name": name, "slots_marked": len(toggle_indices)}
+
+
 # ─── MCP server ─────────────────────────────────────────────────────
 
 def _load_mcp_sdk():
@@ -380,6 +463,17 @@ def run_mcp_server() -> None:
         except TOOL_ERRORS as exc:
             raise tool_error(str(exc)) from exc
 
+    @mcp.tool(title="Vote Availability",
+              annotations={"readOnlyHint": False})
+    async def vote_tool(poll_url: str, name: str,
+                        free_times: list[str],
+                        password: str = "",
+                        timezone: str = "UTC") -> dict:
+        """Mark slots as available for *name*. free_times is a list of
+        ISO timestamps from get_poll_results. Fully replaces prior votes."""
+        return await vote_on_behalf(poll_url, name, free_times,
+                                    password, timezone)
+
     mcp.run()
 
 
@@ -406,6 +500,15 @@ def run_cli(argv: list[str]) -> None:
     pb.add_argument("--min-minutes", type=int, default=30)
     pb.add_argument("--tz", default="UTC")
 
+    pv = sub.add_parser("vote", help="submit availability for a person")
+    pv.add_argument("--url", required=True)
+    pv.add_argument("--name", required=True)
+    pv.add_argument("--times", required=True, nargs="+",
+                    metavar="ISO-TIMESTAMP",
+                    help="free slot ISO timestamps (from 'results')")
+    pv.add_argument("--password", default="")
+    pv.add_argument("--tz", default="UTC")
+
     args = p.parse_args(argv)
     try:
         if args.command == "create":
@@ -417,6 +520,10 @@ def run_cli(argv: list[str]) -> None:
         elif args.command == "best":
             print(json.dumps(asyncio.run(find_best_slot(
                 args.url, args.min_people, args.min_minutes, args.tz)),
+                indent=2, ensure_ascii=False))
+        elif args.command == "vote":
+            print(json.dumps(asyncio.run(vote_on_behalf(
+                args.url, args.name, args.times, args.password, args.tz)),
                 indent=2, ensure_ascii=False))
     except (ValueError, RuntimeError, httpx.HTTPError) as exc:
         print(f"error: {exc}", file=sys.stderr)
