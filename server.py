@@ -223,7 +223,7 @@ if __name__ == "__main__":
     else:
         # MCP server mode
         try:
-            from mcp.server.fastmcp import FastMCP
+            from mcp.server import FastMCP
 
             mcp = FastMCP("when2meet")
 
