@@ -30,8 +30,14 @@ SLOT_MINUTES = 15
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 POLL_ID_RE = re.compile(r"\?(\d+)-([A-Za-z0-9]+)")
 HTTP_TIMEOUT = 30.0
+RETRY_DELAYS = (0.5, 1.5)          # back-off before attempt 2 and 3
+TRANSPORT = None                   # tests inject an httpx.MockTransport here
 WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
             "Saturday", "Sunday"]
+# When2Meet numbers weekdays like JavaScript getDay(): 0 = Sunday .. 6 = Saturday
+SITE_WEEKDAY_NUMBER = {"sunday": 0, "monday": 1, "tuesday": 2, "wednesday": 3,
+                       "thursday": 4, "friday": 5, "saturday": 6}
+POLL_TYPES = ("specific_dates", "days_of_week")
 
 # Markers on the poll page (the same data the site's own JS renders from).
 TIME_OF_SLOT_RE = re.compile(r"TimeOfSlot\[(\d+)\]\s*=\s*(\d+)")
@@ -42,6 +48,7 @@ TITLE_RE = re.compile(r"<title>(.*?)\s*-\s*When2meet</title>", re.S)
 # Days-of-the-week polls label slots "Monday 09:00:00 AM" (no calendar date).
 DOW_LABEL_RE = re.compile(r'ShowSlot\(\d+,\s*"(Monday|Tuesday|Wednesday|Thursday|'
                           r'Friday|Saturday|Sunday) ')
+POLL_TZ_RE = re.compile(r'select\.value\s*!=\s*"([A-Za-z_]+/[A-Za-z_/+\-0-9]+|UTC)"')
 
 
 # ─── Validation helpers ─────────────────────────────────────────────
@@ -55,15 +62,40 @@ def _parse_poll_url(poll_url: str) -> tuple[str, str]:
     return m.group(1), m.group(2)
 
 
-def _validate_create_args(dates: list[str], earliest_hour: int,
-                          latest_hour: int, tz: str) -> None:
+def _weekday_number(value: str) -> int:
+    """Accept 'Monday', 'mon', or the site's own 0-6 numbering."""
+    v = value.strip().lower()
+    if v.isdigit() and 0 <= int(v) <= 6:
+        return int(v)
+    for name, num in SITE_WEEKDAY_NUMBER.items():
+        if v == name or (len(v) >= 3 and name.startswith(v)):
+            return num
+    raise ValueError(f"Not a weekday: {value!r} (use Monday..Sunday or 0-6, "
+                     "0 = Sunday)")
+
+
+def _encode_possible_dates(dates: list[str], poll_type: str) -> str:
+    """Return the PossibleDates form value for SaveNewEvent.php."""
+    if poll_type not in POLL_TYPES:
+        raise ValueError(f"poll_type must be one of {POLL_TYPES}")
     if not dates:
-        raise ValueError("dates must contain at least one YYYY-MM-DD date")
+        raise ValueError("dates must contain at least one entry")
+    if poll_type == "days_of_week":
+        nums = sorted({_weekday_number(d) for d in dates})
+        return "|".join(str(n) for n in nums)
     bad = [d for d in dates if not DATE_RE.match(d)]
     if bad:
         raise ValueError(f"dates must be YYYY-MM-DD, got: {bad}")
     for d in dates:
         datetime.strptime(d, "%Y-%m-%d")  # raises on impossible dates
+    return "|".join(dates)
+
+
+def _validate_create_args(dates: list[str], earliest_hour: int,
+                          latest_hour: int, tz: str,
+                          poll_type: str = "specific_dates") -> str:
+    """Validate everything create_poll sends; returns the PossibleDates value."""
+    possible = _encode_possible_dates(dates, poll_type)
     if not (0 <= earliest_hour <= 23):
         raise ValueError("earliest_hour must be in 0..23")
     if not (0 <= latest_hour <= 24):
@@ -71,6 +103,7 @@ def _validate_create_args(dates: list[str], earliest_hour: int,
     if earliest_hour >= _end_hour(latest_hour):
         raise ValueError("earliest_hour must be before latest_hour")
     _check_tz(tz)
+    return possible
 
 
 def _check_tz(tz: str) -> None:
@@ -83,6 +116,31 @@ def _check_tz(tz: str) -> None:
 def _end_hour(latest_hour: int) -> int:
     """When2Meet encodes an end of midnight as 0; treat 0 and 24 alike."""
     return 24 if latest_hour in (0, 24) else latest_hour
+
+
+# ─── HTTP plumbing ───────────────────────────────────────────────────
+
+def _make_client() -> httpx.AsyncClient:
+    return httpx.AsyncClient(timeout=HTTP_TIMEOUT, follow_redirects=True,
+                             transport=TRANSPORT)
+
+
+async def _request(client: httpx.AsyncClient, method: str, url: str,
+                   **kwargs) -> httpx.Response:
+    """Send a request, retrying transport errors and 5xx responses."""
+    attempts = len(RETRY_DELAYS) + 1
+    for attempt in range(attempts):
+        try:
+            resp = await client.request(method, url, **kwargs)
+        except httpx.TransportError:
+            if attempt == attempts - 1:
+                raise
+        else:
+            if resp.status_code < 500 or attempt == attempts - 1:
+                resp.raise_for_status()
+                return resp
+        await asyncio.sleep(RETRY_DELAYS[attempt])
+    raise RuntimeError("unreachable")
 
 
 # ─── Pure parsing (no network; unit-tested) ─────────────────────────
@@ -136,9 +194,25 @@ def parse_event_page(html: str, tz: str = "UTC") -> dict:
     slots.sort(key=lambda s: s["time"])
 
     m = TITLE_RE.search(html)
+    tzm = POLL_TZ_RE.search(html)
+    poll_tz = None if is_dow else (tzm.group(1) if tzm else None)
+    # Hour range as configured on the poll, in the poll's own timezone.
+    own_zone = timezone.utc if is_dow else ZoneInfo(poll_tz) if poll_tz else zone
+    first = datetime.fromtimestamp(slot_times[0], tz=own_zone)
+    last_end = datetime.fromtimestamp(slot_times[-1], tz=own_zone) + timedelta(
+        minutes=SLOT_MINUTES)
+    seen: list[str] = []
+    for s in slots:
+        if s["date"] not in seen:
+            seen.append(s["date"])
     return {
         "event_name": html_lib.unescape(m.group(1).strip()) if m else "",
         "poll_type": "days_of_week" if is_dow else "specific_dates",
+        "poll_timezone": poll_tz,
+        "dates": seen,
+        "earliest_time": first.strftime("%H:%M"),
+        "latest_time": "24:00" if last_end.strftime("%H:%M") == "00:00"
+        else last_end.strftime("%H:%M"),
         "participants": participants,
         "participant_ids": {id_to_name[pid]: pid for pid in id_to_name},
         "total_participants": len(participants),
@@ -180,28 +254,53 @@ def build_availability(slot_times: list[int], free_times: list[str],
 
 
 def best_windows(results: dict, min_attendees: int = 2,
-                 min_duration_minutes: int = 30) -> list[dict]:
+                 min_duration_minutes: int = 30,
+                 required: list[str] | None = None,
+                 exclude: list[str] | None = None,
+                 dates: list[str] | None = None,
+                 limit: int | None = None) -> list[dict]:
     """Find maximal contiguous windows where at least ``min_attendees`` people
     are free for the *whole* window (attendee set is the intersection across
     every slot in the window). Pure function over ``parse_event_page`` output.
+
+    ``required``: every window must include all of these people.
+    ``exclude``: these people are ignored entirely.
+    ``dates``: only consider these ``date`` labels (ISO dates or weekdays).
+    ``limit``: return at most this many windows (after sorting).
     """
     if min_attendees < 1:
         raise ValueError("min_attendees must be >= 1")
     if min_duration_minutes < SLOT_MINUTES:
         raise ValueError(f"min_duration_minutes must be >= {SLOT_MINUTES}")
+    if limit is not None and limit < 1:
+        raise ValueError("limit must be >= 1")
+    known = set(results.get("participants") or
+                {n for s in results["slots"] for n in s["free"]})
+    required_set = set(required or [])
+    exclude_set = set(exclude or [])
+    unknown = (required_set | exclude_set) - known
+    if unknown and known:
+        raise ValueError(f"Unknown participant(s): {sorted(unknown)}; "
+                         f"poll has {sorted(known)}")
+    if required_set & exclude_set:
+        raise ValueError("A person cannot be both required and excluded")
     need = max(1, min_duration_minutes // SLOT_MINUTES)
     step = timedelta(minutes=SLOT_MINUTES)
+    date_filter = set(dates) if dates else None
 
     by_date: dict[str, list[dict]] = {}
     for s in results["slots"]:
-        by_date.setdefault(s["date"], []).append(s)
+        if date_filter is not None and s["date"] not in date_filter:
+            continue
+        free = [n for n in s["free"] if n not in exclude_set]
+        by_date.setdefault(s["date"], []).append({**s, "free": free})
 
     found = []
     for date, day in by_date.items():
         day = sorted(day, key=lambda x: x["time"])
         for i, j, common in _candidate_windows(day, min_attendees, step):
             length = j - i + 1
-            if length < need:
+            if length < need or not required_set <= common:
                 continue
             end = datetime.fromisoformat(day[j]["time"]) + step
             found.append({
@@ -213,7 +312,7 @@ def best_windows(results: dict, min_attendees: int = 2,
             })
 
     found.sort(key=lambda w: (-len(w["attendees"]), -w["duration_minutes"], w["start"]))
-    return found
+    return found[:limit] if limit else found
 
 
 def _candidate_windows(day: list[dict], min_attendees: int,
@@ -259,6 +358,7 @@ async def create_poll(
     earliest_hour: int = 9,
     latest_hour: int = 18,
     tz: str = "Asia/Shanghai",
+    poll_type: str = "specific_dates",
 ) -> str:
     """Create a new When2Meet availability poll.
 
@@ -270,32 +370,35 @@ async def create_poll(
 
     Args:
         event_name: Title shown on the poll page, e.g. "Weekly sync".
-        dates: Candidate dates to poll, in YYYY-MM-DD format.
+        dates: Candidate dates in YYYY-MM-DD format, or, for a
+            days-of-the-week poll, weekday names ("Monday") or the site's
+            0-6 numbers (0 = Sunday).
         earliest_hour: Earliest selectable hour (0-23). Default 9.
         latest_hour: End hour (1-24; 0 or 24 = midnight). Default 18.
         tz: IANA timezone string. Default "Asia/Shanghai".
+        poll_type: "specific_dates" (default) or "days_of_week".
 
     Returns:
         The shareable When2Meet poll URL.
     """
     if not event_name.strip():
         raise ValueError("event_name must not be empty")
-    _validate_create_args(dates, earliest_hour, latest_hour, tz)
-    async with httpx.AsyncClient(follow_redirects=False,
-                                 timeout=HTTP_TIMEOUT) as client:
-        resp = await client.post(
-            f"{W2M_BASE}/SaveNewEvent.php",
+    possible = _validate_create_args(dates, earliest_hour, latest_hour, tz,
+                                     poll_type)
+    async with _make_client() as client:
+        resp = await _request(
+            client, "POST", f"{W2M_BASE}/SaveNewEvent.php",
             data={
                 "NewEventName": event_name,
-                "DateTypes": "SpecificDates",
-                "PossibleDates": "|".join(dates),
+                "DateTypes": ("DaysOfTheWeek" if poll_type == "days_of_week"
+                              else "SpecificDates"),
+                "PossibleDates": possible,
                 "NoEarlierThan": str(earliest_hour),
                 "NoLaterThan": str(_end_hour(latest_hour) % 24),
                 "TimeZone": tz,
             },
             headers={"Referer": f"{W2M_BASE}/"},
         )
-        resp.raise_for_status()
         m = POLL_ID_RE.search(resp.text)
         if not m:
             raise RuntimeError(f"Failed to create poll: {resp.text[:300]}")
@@ -304,8 +407,7 @@ async def create_poll(
 
 async def _fetch_poll_page(client: httpx.AsyncClient, poll_url: str) -> str:
     eid, code = _parse_poll_url(poll_url)
-    resp = await client.get(f"{W2M_BASE}/?{eid}-{code}")
-    resp.raise_for_status()
+    resp = await _request(client, "GET", f"{W2M_BASE}/?{eid}-{code}")
     return resp.text
 
 
@@ -326,8 +428,7 @@ async def get_poll_results(poll_url: str, tz: str = "UTC") -> dict:
         ISO date, or a weekday name for days-of-the-week polls).
     """
     _check_tz(tz)
-    async with httpx.AsyncClient(timeout=HTTP_TIMEOUT,
-                                 follow_redirects=True) as client:
+    async with _make_client() as client:
         html = await _fetch_poll_page(client, poll_url)
     return parse_event_page(html, tz)
 
@@ -337,6 +438,10 @@ async def find_best_slot(
     min_attendees: int = 2,
     min_duration_minutes: int = 30,
     tz: str = "UTC",
+    required: list[str] | None = None,
+    exclude: list[str] | None = None,
+    dates: list[str] | None = None,
+    limit: int | None = None,
 ) -> list[dict]:
     """Find the best contiguous meeting time windows from a poll.
 
@@ -349,12 +454,18 @@ async def find_best_slot(
         min_attendees: Minimum people required for the whole window. Default 2.
         min_duration_minutes: Minimum meeting length. Default 30 (multiple of 15).
         tz: IANA timezone used to render times. Default "UTC".
+        required: Names that must be free in every returned window.
+        exclude: Names to ignore entirely.
+        dates: Only consider these dates (ISO, or weekday names for
+            days-of-the-week polls).
+        limit: Return at most this many windows.
 
     Returns:
         Sorted list of recommended time windows.
     """
     results = await get_poll_results(poll_url, tz)
-    return best_windows(results, min_attendees, min_duration_minutes)
+    return best_windows(results, min_attendees, min_duration_minutes,
+                        required, exclude, dates, limit)
 
 
 async def vote_on_behalf(
@@ -390,8 +501,7 @@ async def vote_on_behalf(
     _check_tz(tz)
     referer = f"{W2M_BASE}/?{eid}-{code}"
 
-    async with httpx.AsyncClient(timeout=HTTP_TIMEOUT,
-                                 follow_redirects=True) as client:
+    async with _make_client() as client:
         page = await _fetch_poll_page(client, poll_url)
         slot_times = [int(t) for _, t in sorted(
             ((int(i), t) for i, t in TIME_OF_SLOT_RE.findall(page)))]
@@ -400,18 +510,17 @@ async def vote_on_behalf(
                                "check the id and code in the URL")
         bits, marked = build_availability(slot_times, free_times, tz)
 
-        login = await client.post(
-            f"{W2M_BASE}/ProcessLogin.php",
+        login = await _request(
+            client, "POST", f"{W2M_BASE}/ProcessLogin.php",
             data={"id": eid, "name": name, "password": password},
             headers={"Referer": referer})
-        login.raise_for_status()
         person_id = login.text.strip()
         if not person_id.isdigit():
             raise ValueError(f"Sign-in as {name!r} failed: "
                              f"{person_id or 'empty response'}")
 
-        save = await client.post(
-            f"{W2M_BASE}/SaveTimes.php",
+        await _request(
+            client, "POST", f"{W2M_BASE}/SaveTimes.php",
             data={
                 "person": person_id,
                 "event": eid,
@@ -421,7 +530,6 @@ async def vote_on_behalf(
                 "ChangeToAvailable": "true",
             },
             headers={"Referer": referer})
-        save.raise_for_status()
 
     zone = ZoneInfo(tz)
     return {
@@ -465,11 +573,13 @@ def run_mcp_server() -> None:
               annotations={"readOnlyHint": False})
     async def create_poll_tool(event_name: str, dates: list[str],
                                earliest_hour: int = 9, latest_hour: int = 18,
-                               timezone: str = "Asia/Shanghai") -> str:
-        """Create a poll. Share the URL, then read results."""
+                               timezone: str = "Asia/Shanghai",
+                               poll_type: str = "specific_dates") -> str:
+        """Create a poll. dates are YYYY-MM-DD, or weekday names when
+        poll_type="days_of_week". Share the URL, then read results."""
         try:
             return await create_poll(event_name, dates, earliest_hour,
-                                     latest_hour, timezone)
+                                     latest_hour, timezone, poll_type)
         except TOOL_ERRORS as exc:
             raise tool_error(str(exc)) from exc
 
@@ -487,11 +597,17 @@ def run_mcp_server() -> None:
     async def find_best_slot_tool(poll_url: str,
                                   min_attendees: int = 2,
                                   min_duration_minutes: int = 30,
-                                  timezone: str = "UTC") -> list[dict]:
-        """Find best contiguous windows. Sorted by attendees. Read-only."""
+                                  timezone: str = "UTC",
+                                  required: list[str] | None = None,
+                                  exclude: list[str] | None = None,
+                                  dates: list[str] | None = None,
+                                  limit: int | None = None) -> list[dict]:
+        """Find best contiguous windows where the same people are free
+        throughout. required/exclude/dates/limit narrow the search. Read-only."""
         try:
             return await find_best_slot(poll_url, min_attendees,
-                                        min_duration_minutes, timezone)
+                                        min_duration_minutes, timezone,
+                                        required, exclude, dates, limit)
         except TOOL_ERRORS as exc:
             raise tool_error(str(exc)) from exc
 
@@ -524,6 +640,9 @@ def run_cli(argv: list[str]) -> None:
     pc.add_argument("--earliest", type=int, default=9)
     pc.add_argument("--latest", type=int, default=18)
     pc.add_argument("--tz", default="Asia/Shanghai")
+    pc.add_argument("--type", dest="poll_type", default="specific_dates",
+                    choices=POLL_TYPES,
+                    help="days_of_week: --dates are weekday names or 0-6")
 
     pr = sub.add_parser("results", help="print per-slot availability as JSON")
     pr.add_argument("--url", required=True)
@@ -534,6 +653,10 @@ def run_cli(argv: list[str]) -> None:
     pb.add_argument("--min-people", type=int, default=2)
     pb.add_argument("--min-minutes", type=int, default=30)
     pb.add_argument("--tz", default="UTC")
+    pb.add_argument("--require", nargs="+", default=None, metavar="NAME")
+    pb.add_argument("--exclude", nargs="+", default=None, metavar="NAME")
+    pb.add_argument("--dates", nargs="+", default=None, metavar="DATE")
+    pb.add_argument("--limit", type=int, default=None)
 
     pv = sub.add_parser("vote", help="submit availability for a person")
     pv.add_argument("--url", required=True)
@@ -548,13 +671,15 @@ def run_cli(argv: list[str]) -> None:
     try:
         if args.command == "create":
             print(asyncio.run(create_poll(
-                args.name, args.dates, args.earliest, args.latest, args.tz)))
+                args.name, args.dates, args.earliest, args.latest, args.tz,
+                args.poll_type)))
         elif args.command == "results":
             print(json.dumps(asyncio.run(get_poll_results(args.url, args.tz)),
                              indent=2, ensure_ascii=False))
         elif args.command == "best":
             print(json.dumps(asyncio.run(find_best_slot(
-                args.url, args.min_people, args.min_minutes, args.tz)),
+                args.url, args.min_people, args.min_minutes, args.tz,
+                args.require, args.exclude, args.dates, args.limit)),
                 indent=2, ensure_ascii=False))
         elif args.command == "vote":
             print(json.dumps(asyncio.run(vote_on_behalf(

@@ -286,3 +286,198 @@ def test_vote_rejects_empty_name_and_bad_url():
         asyncio.run(server.vote_on_behalf("https://when2meet.com/?1-ABC", " ", []))
     with pytest.raises(ValueError, match="poll URL"):
         asyncio.run(server.vote_on_behalf("https://when2meet.com/", "Alice", []))
+
+
+# ─── poll metadata ─────────────────────────────────────────────────
+
+def test_metadata_specific_dates(two):
+    assert two["poll_timezone"] == "Asia/Shanghai"
+    assert two["dates"] == ["2026-09-10", "2026-09-11"]
+    assert (two["earliest_time"], two["latest_time"]) == ("09:00", "18:00")
+
+
+def test_metadata_dst_and_days_of_week():
+    dst = load("page_dst_new_york")
+    assert dst["poll_timezone"] == "America/New_York"
+    assert (dst["earliest_time"], dst["latest_time"]) == ("00:00", "23:00")
+    dow = load("page_days_of_week")
+    assert dow["poll_timezone"] is None
+    assert dow["dates"] == ["Monday", "Wednesday", "Friday"]
+    assert (dow["earliest_time"], dow["latest_time"]) == ("09:00", "12:00")
+
+
+# ─── window constraints ─────────────────────────────────────────────
+
+def test_best_windows_required(six):
+    wins = server.best_windows(six, 2, 30, required=["王小明"])
+    assert [w["attendees"] for w in wins] == [
+        ["Alice", "Bob", "王小明"], ["Alice", "王小明"]]
+
+
+def test_best_windows_exclude_changes_result(six):
+    wins = server.best_windows(six, 2, 30, exclude=["Bob"])
+    assert all("Bob" not in w["attendees"] for w in wins)
+    # same attendee count -> longer window first
+    assert (wins[0]["attendees"], wins[0]["duration_minutes"]) == (["Alice", "王小明"], 90)
+    assert (wins[1]["attendees"], wins[1]["duration_minutes"]) == (["Alice", "Zoë O'Brien"], 30)
+
+
+def test_best_windows_dates_and_limit(six):
+    wins = server.best_windows(six, 2, 30, dates=["2026-09-15"], limit=1)
+    assert len(wins) == 1
+    assert wins[0]["date"] == "2026-09-15"
+    assert wins[0]["attendees"] == ["Alice", "Bob", "王小明"]
+    assert server.best_windows(six, 2, 30, dates=["2026-12-25"]) == []
+
+
+def test_best_windows_constraint_validation(six):
+    with pytest.raises(ValueError, match="Unknown participant"):
+        server.best_windows(six, 2, 30, required=["Nobody"])
+    with pytest.raises(ValueError, match="both required and excluded"):
+        server.best_windows(six, 2, 30, required=["Bob"], exclude=["Bob"])
+    with pytest.raises(ValueError, match="limit"):
+        server.best_windows(six, 2, 30, limit=0)
+
+
+# ─── days-of-the-week creation ──────────────────────────────────────
+
+@pytest.mark.parametrize("dates,expected", [
+    (["Monday", "Wednesday", "Friday"], "1|3|5"),
+    (["sun", "SAT"], "0|6"),
+    (["2", "tue"], "2"),
+])
+def test_encode_days_of_week(dates, expected):
+    assert server._encode_possible_dates(dates, "days_of_week") == expected
+
+
+def test_encode_days_of_week_rejects_bad_input():
+    with pytest.raises(ValueError, match="Not a weekday"):
+        server._encode_possible_dates(["2026-09-10"], "days_of_week")
+    with pytest.raises(ValueError, match="poll_type"):
+        server._encode_possible_dates(["Monday"], "weekly")
+    with pytest.raises(ValueError, match="YYYY-MM-DD"):
+        server._encode_possible_dates(["Monday"], "specific_dates")
+
+
+# ─── HTTP layer with a mock transport (no network) ──────────────────
+
+import asyncio
+import httpx
+
+
+@pytest.fixture
+def transport(monkeypatch):
+    """Install an httpx.MockTransport; returns the list of captured requests."""
+    calls = []
+    state = {"handler": None}
+
+    def handler(request):
+        calls.append(request)
+        return state["handler"](request)
+
+    monkeypatch.setattr(server, "TRANSPORT", httpx.MockTransport(handler))
+    monkeypatch.setattr(server, "RETRY_DELAYS", (0, 0))
+    state["calls"] = calls
+    return state
+
+
+def test_create_poll_posts_expected_form(transport):
+    def h(req):
+        assert req.url.path == "/SaveNewEvent.php"
+        return httpx.Response(200, text="<script>window.location='./?123-AbC'</script>")
+    transport["handler"] = h
+    url = asyncio.run(server.create_poll("Sync", ["Monday", "Friday"], 10, 24,
+                                         "UTC", "days_of_week"))
+    assert url == "https://www.when2meet.com/?123-AbC"
+    form = dict(x.split("=") for x in transport["calls"][0].content.decode().split("&"))
+    assert form == {"NewEventName": "Sync", "DateTypes": "DaysOfTheWeek",
+                    "PossibleDates": "1%7C5", "NoEarlierThan": "10",
+                    "NoLaterThan": "0", "TimeZone": "UTC"}
+
+
+def test_get_poll_results_retries_then_succeeds(transport):
+    page = (FX / "page_two_people.html").read_text()
+    attempts = iter([httpx.Response(502), httpx.Response(503), httpx.Response(200, text=page)])
+    transport["handler"] = lambda req: next(attempts)
+    r = asyncio.run(server.get_poll_results("https://when2meet.com/?38390901-GqoiQ"))
+    assert r["participants"] == ["Alice", "Bob"]
+    assert len(transport["calls"]) == 3
+
+
+def test_get_poll_results_gives_up_after_retries(transport):
+    transport["handler"] = lambda req: httpx.Response(500)
+    with pytest.raises(httpx.HTTPStatusError):
+        asyncio.run(server.get_poll_results("https://when2meet.com/?38390901-GqoiQ"))
+    assert len(transport["calls"]) == 3
+
+
+def test_get_poll_results_retries_transport_errors(transport):
+    page = (FX / "page_two_people.html").read_text()
+    n = {"i": 0}
+    def h(req):
+        n["i"] += 1
+        if n["i"] == 1:
+            raise httpx.ConnectError("boom", request=req)
+        return httpx.Response(200, text=page)
+    transport["handler"] = h
+    assert asyncio.run(server.get_poll_results("https://when2meet.com/?38390901-GqoiQ"))["participants"] == ["Alice", "Bob"]
+
+
+def test_get_poll_results_no_retry_on_4xx(transport):
+    transport["handler"] = lambda req: httpx.Response(404)
+    with pytest.raises(httpx.HTTPStatusError):
+        asyncio.run(server.get_poll_results("https://when2meet.com/?38390901-GqoiQ"))
+    assert len(transport["calls"]) == 1
+
+
+def test_vote_on_behalf_full_flow(transport):
+    page = (FX / "page_two_people.html").read_text()
+    def h(req):
+        if req.method == "GET":
+            return httpx.Response(200, text=page)
+        if req.url.path == "/ProcessLogin.php":
+            return httpx.Response(200, text="4242")
+        assert req.url.path == "/SaveTimes.php"
+        return httpx.Response(200, text="")
+    transport["handler"] = h
+    r = asyncio.run(server.vote_on_behalf(
+        "https://when2meet.com/?38390901-GqoiQ", "Cara",
+        ["2026-09-10T09:00+08:00", "2026-09-10T09:15+08:00"], tz="Asia/Shanghai"))
+    assert r == {"name": "Cara", "person_id": "4242", "slots_marked": 2,
+                 "times": ["2026-09-10T09:00:00+08:00", "2026-09-10T09:15:00+08:00"]}
+    save = transport["calls"][-1]
+    form = dict(x.split("=") for x in save.content.decode().split("&"))
+    assert form["person"] == "4242" and form["event"] == "38390901"
+    assert form["availability"] == "11" + "0" * 70
+    assert form["slots"] == "1789002000%2C1789002900"
+
+
+def test_vote_on_behalf_wrong_password_is_value_error(transport):
+    page = (FX / "page_two_people.html").read_text()
+    transport["handler"] = lambda req: (httpx.Response(200, text=page) if req.method == "GET"
+                                        else httpx.Response(200, text="Wrong password."))
+    with pytest.raises(ValueError, match="Wrong password"):
+        asyncio.run(server.vote_on_behalf("https://when2meet.com/?38390901-GqoiQ",
+                                          "Alice", [], password="x"))
+    assert not any(c.url.path == "/SaveTimes.php" for c in transport["calls"])
+
+
+# ─── days-of-the-week poll with votes (created through create_poll) ──
+
+def test_days_of_week_voted_poll_end_to_end():
+    """Created with poll_type="days_of_week", dates Monday/wed/FRI, 14-16
+    Asia/Shanghai. Ann voted all 8 Wednesday slots, Ben the first 4."""
+    r = load("page_days_of_week_voted")
+    assert r["poll_type"] == "days_of_week"
+    assert r["event_name"] == "weekly dow e2e"
+    assert r["dates"] == ["Monday", "Wednesday", "Friday"]
+    assert (r["earliest_time"], r["latest_time"]) == ("14:00", "16:00")
+    assert len(r["slots"]) == 24
+    assert r["participants"] == ["Ann", "Ben"]
+    wins = server.best_windows(r, 2, 30)
+    assert [(w["date"], w["start"][11:16], w["end"][11:16], w["duration_minutes"], w["attendees"])
+            for w in wins] == [("Wednesday", "14:00", "15:00", 60, ["Ann", "Ben"])]
+    ann = server.best_windows(r, 1, 30, required=["Ann"], dates=["Wednesday"])
+    assert [(w["duration_minutes"], w["attendees"]) for w in ann] == [
+        (60, ["Ann", "Ben"]), (120, ["Ann"])]
+    assert server.best_windows(r, 1, 30, dates=["Monday"]) == []
