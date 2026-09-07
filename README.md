@@ -13,9 +13,9 @@ A [Model Context Protocol](https://modelcontextprotocol.io) server for [When2Mee
 ### Install
 
 ```bash
-git clone https://github.com/luoqinyu/when2meet-mcp.git
+git clone https://github.com/LOGIC-10/when2meet-mcp.git
 cd when2meet-mcp
-pip install httpx beautifulsoup4 "mcp[cli]"
+pip install -r requirements.txt   # works with MCP SDK 1.x and 2.x
 ```
 
 ### Run as MCP server
@@ -43,8 +43,8 @@ Configure in your MCP client (Claude Desktop, Cursor, etc.):
 # Create a poll
 python server.py create --name "Weekly sync" --dates 2026-09-10 2026-09-11 2026-09-12
 
-# Read results
-python server.py results --url "https://when2meet.com/?12345-ABCDE"
+# Read results (times rendered in --tz, default UTC)
+python server.py results --url "https://when2meet.com/?12345-ABCDE" --tz Asia/Shanghai
 
 # Find best slots
 python server.py best --url "https://when2meet.com/?12345-ABCDE" --min-people 2 --min-minutes 30
@@ -55,8 +55,8 @@ python server.py best --url "https://when2meet.com/?12345-ABCDE" --min-people 2 
 | Tool | Description |
 |------|-------------|
 | `create_poll` | Create a new availability poll. Returns the shareable URL. |
-| `get_poll_results` | Read who is free at each 15-min slot. Read-only. |
-| `find_best_slot` | Find best contiguous meeting windows. Sorted by attendees. Read-only. |
+| `get_poll_results` | Read who is free at each 15-min slot, sorted by time. Optional `timezone`. Read-only. |
+| `find_best_slot` | Maximal contiguous windows where the same people are free for the whole window (attendees = intersection). Sorted by attendee count, then duration. Read-only. |
 
 ## How It Works
 
@@ -65,7 +65,17 @@ This server is a thin Python wrapper around When2Meet's existing HTTP endpoints.
 | Endpoint | Purpose |
 |----------|---------|
 | `POST /SaveNewEvent.php` | Create a new poll |
-| `POST /AvailabilityGrids.php` | Fetch availability grid (hex bitmask) |
+| `POST /AvailabilityGrids.php` | Fetch availability grid (one hex bitmask per participant, column-major slot order) |
+
+## Tests
+
+Offline tests run against a recorded `AvailabilityGrids.php` response whose
+ground truth was verified on the live poll page:
+
+```bash
+pip install -r requirements-dev.txt
+python -m pytest -q
+```
 
 ## License
 
