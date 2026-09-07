@@ -16,7 +16,7 @@ A [Model Context Protocol](https://modelcontextprotocol.io) server for [When2Mee
 ```bash
 git clone https://github.com/LOGIC-10/when2meet-mcp.git
 cd when2meet-mcp
-pip install -r requirements.txt   # works with MCP SDK 1.x and 2.x
+pip install -r requirements.txt   # httpx + mcp[cli]; works with MCP SDK 1.x and 2.x
 ```
 
 ### Run as MCP server
