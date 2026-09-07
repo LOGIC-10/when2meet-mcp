@@ -1,0 +1,1380 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-3L5STP8FEF"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-3L5STP8FEF');
+</script>
+
+<title>Full e2e 0907 - When2meet</title>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex">
+<LINK REL=StyleSheet HREF="style.css" TYPE="text/css" MEDIA=screen>
+<LINK REL=StyleSheet HREF="style2.css" TYPE="text/css" MEDIA=screen>
+<HTTP-EQUIV="PRAGMA" CONTENT="NO-CACHE">
+
+<!-- Global site tag (gtag.js) - Google Ads: 996267299 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-996267299"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'AW-996267299');
+</script>
+
+
+</head>
+<body bgcolor=black>
+
+<div id=MenuTop>
+  <div id=MenuTopLeft>
+    <a href="?About" >About When2meet</a>
+    <a href="." >Plan a New Event</a>
+  </div>
+  <div id=MenuTopRight>
+  </div>
+<br clear=all>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9156670043265053"
+     crossorigin="anonymous"></script>
+</div>
+
+<div id=MainBody  style="background:white; margin:0px;border:0px;padding:0px;">
+
+
+<script  type="text/javascript">
+
+  var AnchorRow=0;
+  var AnchorColumn=0;
+  var HoverRow=0;
+  var HoverColumn=0;
+  var WriteMode="";
+  var Dates = [];
+  var xMousePos;
+  var yMousePos;
+  var xMouseRef;
+  var yMouseRef;
+  var count=0;
+  var Months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var DaysOfWeek = ["S","M","T","W","R","F","S"];
+
+  if (document.layers) { // Netscape
+    document.captureEvents(Event.MOUSEMOVE);
+    document.onmousemove = captureMousePosition;
+  } else if (document.all) { // Internet Explorer
+    document.onmousemove = captureMousePosition;
+  } else if (document.getElementById) { // Netscape 6
+    document.onmousemove = captureMousePosition;
+  }
+
+  var mousewheelevt=(/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel" //FF doesn't recognize mousewheel as of FF3.x
+ 
+  function wheel(event){
+    var evt=window.event || event //equalize event object
+    var delta=evt.detail? evt.detail*(-240) : evt.wheelDelta
+    delta = delta/Math.abs(delta);
+//    ShiftCalendar(-7*delta);
+  }
+
+  function captureMousePosition(e) {
+    if (document.layers) {
+        xMousePos = e.pageX;
+        yMousePos = e.pageY;
+        xMousePosMax = window.innerWidth+window.pageXOffset;
+        yMousePosMax = window.innerHeight+window.pageYOffset;
+    } else if (document.all) {
+        xMousePos = window.event.x+document.body.scrollLeft;
+        yMousePos = window.event.y+document.body.scrollTop;
+        xMousePosMax = document.body.clientWidth+document.body.scrollLeft;
+        yMousePosMax = document.body.clientHeight+document.body.scrollTop;
+    } else if (document.getElementById) {
+        xMousePos = e.pageX;
+        yMousePos = e.pageY;
+        xMousePosMax = window.innerWidth+window.pageXOffset;
+        yMousePosMax = window.innerHeight+window.pageYOffset;
+    }
+  }
+  
+  function MouseDownDate(Row,Column) {
+    IsMouseDownDates=true;
+    AnchorRow=Row;
+    AnchorColumn=Column;
+    HoverRow=Row;
+    HoverColumn=Column;
+    if (ArraySearch(Dates,document.getElementById("DateOf-"+Row+"-"+Column).value)) {
+      WriteMode = "erase";
+    } else {
+      WriteMode = "write";
+    }
+    ReColor();
+  }
+
+  function MouseOverDate(Row,Column) {
+    if (IsMouseDownDates) {
+      HoverRow=Row;
+      HoverColumn=Column;
+      ReColor();
+    }
+  }
+
+  function AddHighlightedDates(HighlightedDates) { 
+    var DateNum=-1;
+	while (DateNum < HighlightedDates.length) {
+      Dates.push(HighlightedDates[DateNum]);
+      DateNum++;
+    }
+    Dates = Unique(Dates);
+    document.getElementById("PossibleDates").value = Dates.join("|");
+  }
+
+  function RemoveHighlightedDates(HighlightedDates) { 
+    var DateNum=-1;
+    NewDates = [];
+	while (DateNum < Dates.length) {
+      if (!ArraySearch(HighlightedDates,Dates[DateNum])) {
+        NewDates.push(Dates[DateNum]);
+      }
+      DateNum++;
+    }
+    Dates = Unique(NewDates);
+    document.getElementById("PossibleDates").value = Dates.join("|");
+  }
+
+  function Unique(InputArray) {
+    var a = [];
+    for(var i=0; i<InputArray.length; i++) {
+      unique = 1;
+      for(var j=i+1; j<InputArray.length; j++) {
+        if (InputArray[i] == InputArray[j]) {unique = 0;}
+      }
+      if (unique&&(InputArray[i]!=null)&&(InputArray[i]!="")) { a.push(InputArray[i]); }
+    }
+    return a.sort();
+  }
+
+  function MouseUp() {
+
+    if (WriteMode!="") {
+      var HighlightedDates = [];
+      for (Row=1;Row<=6;Row++) {
+        for (Column=1;Column<=7;Column++) {
+          if (((AnchorRow-Row)*(Row-HoverRow)>=0) && ((AnchorColumn-Column)*(Column-HoverColumn)>=0)) {
+            HighlightedDates.push(document.getElementById("DateOf-"+Row+"-"+Column).value);
+          }
+          document.getElementById("Day-"+Row+"-"+Column).style.border='1px solid black';
+          document.getElementById("Day-"+Row+"-"+Column).style.padding='2px';
+          document.getElementById("Day-"+Row+"-"+Column).style.margin='1px';
+        }
+      }
+
+      if (WriteMode == "write") {
+        AddHighlightedDates(HighlightedDates);
+      } else { // WriteMode == "erase"
+        RemoveHighlightedDates(HighlightedDates);
+      }
+    }
+    WriteMode = "";
+
+    IsMouseDownDates=false;
+    IsMouseDownSideLabel=false;
+    IsMouseDownTopLabel=false;
+
+  }
+
+  function ArraySearch(arr, obj) {
+    for(var i=0; i<arr.length; i++) {
+      if (arr[i] == obj) return true;
+    }
+    return false;
+  }
+
+  function ShiftCalendar(Delta) {
+    for (Row=1;Row<=5;Row++) {
+      var ThisWeek=false;
+      for (Column=1;Column<=7;Column++) {
+        var DateOfCell = document.getElementById("DateOf-"+Row+"-"+Column).value.split("-");
+        t = new Date(DateOfCell[0],DateOfCell[1]-1,DateOfCell[2],12,0);
+        t.setTime(t.getTime()+60*60*24*1000*Delta);
+        var Month = t.getMonth()+1;
+        if (Month<10) { Month = '0'+Month; }
+
+        var DayOfMonth = t.getDate();
+        if (DayOfMonth<10) { DayOfMonth = '0'+DayOfMonth; }
+
+        var FullDateString = t.getFullYear() + "-" + Month + "-" + DayOfMonth;
+
+        document.getElementById("DateOf-"+Row+"-"+Column).value = FullDateString;
+        if ((Row==1)&&(Column==1)) {
+          document.getElementById("TopLeftDate").value = FullDateString;
+        }
+        if (FullDateString == DateLoaded) {
+          document.getElementById("Day-"+Row+"-"+Column).style.fontWeight = "bold";
+          ThisWeek=true;
+        } else {
+          document.getElementById("Day-"+Row+"-"+Column).style.fontWeight = "normal";
+        }
+        document.getElementById("Day-"+Row+"-"+Column).innerHTML = t.getDate();
+
+      }
+
+      var DateOfCell = document.getElementById("DateOf-"+Row+"-1").value.split("-");
+      var DateOfCell2 = document.getElementById("DateOf-"+Row+"-7").value.split("-");
+      var MonthName; var Year;
+
+      if (DateOfCell[1]==DateOfCell2[1]) {
+        MonthName = Months[DateOfCell[1]-1];
+      } else {
+        MonthName = Months[DateOfCell[1]-1]+"/"+Months[DateOfCell2[1]-1];
+      }
+      if (ThisWeek) {
+        document.getElementById("Month-"+Row).innerHTML = "<b>"+ MonthName +"</b>";
+      } else {
+        document.getElementById("Month-"+Row).innerHTML = MonthName;
+      }
+
+      if (DateOfCell[0]==DateOfCell2[0]) {
+        Year = DateOfCell[0];
+      } else {
+        Year = DateOfCell[0]+"/"+DateOfCell2[0];
+      }
+      if (ThisWeek) {
+        document.getElementById("Year-"+Row).innerHTML = "<b>"+ Year +"</b>";
+      } else {
+        document.getElementById("Year-"+Row).innerHTML = Year;
+      }
+
+    }
+
+    for (Column=1;Column<=7;Column++) {
+      var DateOfCell = document.getElementById("DateOf-1-"+Column).value.split("-");
+      var t = new Date(DateOfCell[0],DateOfCell[1]-1,DateOfCell[2],12,0);
+      document.getElementById("DayOfWeek-"+Column).innerHTML = DaysOfWeek[t.getDay()];
+      document.getElementById("DateOf-6-"+Column).value = t.getDay();
+    }
+
+    ReColor();
+  }
+
+  function ShiftToDate(NewTopLeftDate,ShiftToLeft) {
+     var CalendarStartTimeString = document.getElementById("DateOf-1-1").value.split("-");
+     CalendarStartTime = new Date(CalendarStartTimeString[0],CalendarStartTimeString[1]-1,CalendarStartTimeString[2],12,0);
+     var NewStartTimeString = NewTopLeftDate.split("-");
+     NewStartTime = new Date(NewStartTimeString[0],NewStartTimeString[1]-1,NewStartTimeString[2],12,0);
+
+	 ShiftDays = (NewStartTime.getTime() - CalendarStartTime.getTime())/(60*60*24*1000);
+     if (ShiftToLeft) {
+       ShiftCalendar(ShiftDays);
+     } else {
+       ShiftCalendar(7*Math.floor(ShiftDays/7));
+     }
+  }
+
+  function ReColorOld() {
+    for (Row=1;Row<=6;Row++) {
+      for (Column=1;Column<=7;Column++) {
+        if ((WriteMode!="") && ((AnchorRow-Row)*(Row-HoverRow)>=0) && ((AnchorColumn-Column)*(Column-HoverColumn)>=0)) {
+
+          if (WriteMode == "write") {
+            document.getElementById("Day-"+Row+"-"+Column).style.backgroundColor='green';
+            document.getElementById("Day-"+Row+"-"+Column).style.color='white';
+          } else {
+            document.getElementById("Day-"+Row+"-"+Column).style.backgroundColor='#ffdede';
+            document.getElementById("Day-"+Row+"-"+Column).style.color='black';
+          }
+          document.getElementById("Day-"+Row+"-"+Column).style.border='0px solid black';
+          document.getElementById("Day-"+Row+"-"+Column).style.padding='4px';
+          document.getElementById("Day-"+Row+"-"+Column).style.margin='0px';
+        } else {
+          document.getElementById("Day-"+Row+"-"+Column).style.border='1px solid black';
+          document.getElementById("Day-"+Row+"-"+Column).style.padding='2px';
+          document.getElementById("Day-"+Row+"-"+Column).style.margin='1px';
+
+          if (ArraySearch(Dates,document.getElementById("DateOf-"+Row+"-"+Column).value)) {
+            document.getElementById("Day-"+Row+"-"+Column).style.backgroundColor='green';
+            document.getElementById("Day-"+Row+"-"+Column).style.color='white';
+          } else {
+            document.getElementById("Day-"+Row+"-"+Column).style.backgroundColor='#ffdede';
+            document.getElementById("Day-"+Row+"-"+Column).style.color='black';
+          }
+
+        }
+      }
+    }
+  }
+
+  function DateTypesChanged() {
+    if (document.getElementById("DateTypes").value == "SpecificDates") {
+	  document.getElementById("SpecificDates").style.display = '';
+	  document.getElementById("DaysOfTheWeek").style.display = 'none';
+	  document.getElementById("Today").style.display = '';
+	} else {
+	  document.getElementById("SpecificDates").style.display = 'none';
+	  document.getElementById("DaysOfTheWeek").style.display = '';
+	  document.getElementById("Today").style.display = 'none';
+	}
+  }
+
+  function loadTimezoneOptions(id) {
+    const timezoneSelect = document.getElementById(id);
+    const timezones = Intl.supportedValuesOf('timeZone');
+    timezones.forEach(tz => {
+       const option = document.createElement('option');
+        option.value = tz;
+        option.textContent = tz;
+        timezoneSelect.appendChild(option);
+    });
+    const systemTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (timezones.includes(systemTimezone)) {
+        timezoneSelect.value = systemTimezone;
+    }
+  }
+
+  function LoadAvailabilityGrids() {
+    participantTimeZone = document.getElementById("ParticipantTimeZone").options[document.getElementById("ParticipantTimeZone").selectedIndex].value;
+
+    const params = new URLSearchParams("38391076-BNcoG");
+    params.append('id', '38391076');
+    params.append('code', 'BNcoG');
+    params.append('participantTimeZone', participantTimeZone);
+
+    fetch("AvailabilityGrids.php", {
+      method: "POST",
+      body: params
+    })
+    .then(response => {
+      if (!response.ok) throw new Error("Network response was not ok");
+      return response.text();
+    })
+    .then(html => {
+      document.getElementById("AvailabilityGrids").innerHTML = html;
+      if (typeof UserID !== 'undefined' && UserID) {
+        document.getElementById("SignIn").style.display = 'none';
+        document.getElementById("YouGrid").style.display = '';
+        document.getElementById("UserName").innerHTML = PeopleNames[PeopleIDs.indexOf(UserID)];
+        ReColorIndividual();
+      }
+    })
+    .catch(error => {
+      console.error("Fetch error:", error);
+    });
+
+
+  }
+  
+  
+  /******* STUFF WRITTEN FOR NEW VERSION *******/
+  
+  
+  document.ondragstart=function(){return false;};
+  document.onmouseup=SelectStop;
+  var ChangeToAvailable=false;
+  var IsMouseDown=false;
+  var PeopleNames=new Array();
+  var PeopleIDs=new Array();
+  var UserID=0;
+  var TimeOfSlot=new Array();
+  var AvailableAtSlot=new Array();
+  var Col = new Array();
+  var Row = new Array();
+  var FromCol=-1; var ToCol=-1;
+  var FromRow=-1; var ToRow=-1;
+  
+  function ReColorIndividual() {
+    for (var i=0;i<TimeOfSlot.length;i++) {
+      if (FromCol<ToCol) { ColA=FromCol; ColB=ToCol; } else { ColA=ToCol; ColB=FromCol; }
+      if (FromRow<ToRow) { RowA=FromRow; RowB=ToRow; } else { RowA=ToRow; RowB=FromRow; }
+
+      var currentElement = document.getElementById("YouTime"+TimeOfSlot[i]);
+      if (currentElement) {
+        var dataCol = Number(currentElement.getAttribute("data-col"));
+        var dataRow = Number(currentElement.getAttribute("data-row"));
+      
+        var WithinX = ((ColA<=dataCol)&&(dataCol<=ColB));
+        var WithinY = ((RowA<=dataRow)&&(dataRow<=RowB));
+
+        if (ChangeToAvailable) NewColor="#339900"; else NewColor="#ffdede";
+        if (WithinX && WithinY && IsMouseDown) {
+          currentElement.style.background=NewColor;
+          currentElement.style.borderColor=NewColor;
+          if (ColA==dataCol) currentElement.style.borderLeftColor="black";
+          if (ColB==dataCol) currentElement.style.borderRightColor="black";
+          if (RowA==dataRow) currentElement.style.borderTopColor="black";
+          if (RowB==dataRow) currentElement.style.borderBottomColor="black";
+        } else {
+          if (-1 != AvailableAtSlot[i].indexOf(UserID) ) {
+            currentElement.style.background="#339900";
+            currentElement.style.borderColor="black";          
+          } else {
+            currentElement.style.background="#ffdede";
+            currentElement.style.borderColor="black";
+          }
+        }
+      }
+    }
+  }
+  
+  function ReColorGroup() {
+    var MinAvailable = 10000; var MaxAvailable=0;
+    var SelfIsAvailable = false;
+    for (var i=0;i<AvailableAtSlot.length;i++) {
+      if (AvailableAtSlot[i].length<MinAvailable) MinAvailable = AvailableAtSlot[i].length;
+      if (AvailableAtSlot[i].length>MaxAvailable) MaxAvailable = AvailableAtSlot[i].length;
+      if (AvailableAtSlot[i].indexOf(UserID)!=-1) SelfIsAvailable = true;
+    }
+    if ((AvailableIDs.indexOf(UserID)!=-1)&&(!SelfIsAvailable)) {
+      SplitSpot = AvailableIDs.indexOf(UserID);
+      AvailableIDs.splice(SplitSpot,1);
+    } else if ((AvailableIDs.indexOf(UserID)==-1)&&SelfIsAvailable)
+      AvailableIDs.push(UserID);
+      
+    document.getElementById("MinAvailable").innerHTML = MinAvailable+"/"+AvailableIDs.length;
+    document.getElementById("MaxAvailable").innerHTML = MaxAvailable+"/"+AvailableIDs.length;
+    
+    TableStart = "<table width=100 height=10 cellpadding=0 cellspacing=0 style='border: solid 1px black'><tr>";
+    TableEnd = "</tr></table>";
+    TableContent = "";
+    for (var i=MinAvailable; i<=MaxAvailable; i++) {
+      Red = Green = Blue = Math.round(255/2);
+      if (MinAvailable!=MaxAvailable) {
+        Red = Math.round(((204)*(MaxAvailable-i)/(MaxAvailable-MinAvailable))+51);
+        Green = Math.round(((102)*(MaxAvailable-i)/(MaxAvailable-MinAvailable))+153);
+        Blue = Math.round(((255)*(MaxAvailable-i)/(MaxAvailable-MinAvailable))+0);
+      }
+
+      TableContent += "<td bgcolor=#" + (Red*256*256+Green*256+Blue).toString(16) + ">&nbsp;</td>";
+    }
+    
+    document.getElementById("GroupKey").innerHTML = TableStart+TableContent+TableEnd;
+    
+    for (var i=0;i<AvailableAtSlot.length;i++) {
+      Red = Green = Blue = Math.round(255/2);
+      if (MinAvailable!=MaxAvailable) {
+        Red = Math.round(((204)*(MaxAvailable-AvailableAtSlot[i].length)/(MaxAvailable-MinAvailable))+51);
+        Green = Math.round(((102)*(MaxAvailable-AvailableAtSlot[i].length)/(MaxAvailable-MinAvailable))+153);
+        Blue = Math.round(((255)*(MaxAvailable-AvailableAtSlot[i].length)/(MaxAvailable-MinAvailable))+0);
+      }
+      document.getElementById("GroupTime"+TimeOfSlot[i]).style.background="#"+(Red*256*256+Green*256+Blue).toString(16);
+    }
+  }
+  
+  function ShowSlot(Time,TimeString="") {
+    e = document.getElementById("ParticipantTimeZone");
+    timezone = e[e.selectedIndex].value;
+    
+    if (isNaN(Time)||(Time==0)) {
+      document.getElementById("AvailableDate").innerHTML = "&nbsp;";
+      document.getElementById("Available").innerHTML = "";
+      document.getElementById("Unavailable").innerHTML = "";
+      document.getElementById("AvailableFraction").innerHTML = "0/"+AvailableIDs.length;
+      return;
+    }
+
+    AvailableList = "";
+    UnavailableList = "";
+    AvailableCount=0;
+    Count=0;
+    for (var i=0;i<AvailableIDs.length;i++) {
+      Count++;
+      var found = (-1 != AvailableAtSlot[TimeOfSlot.indexOf(Time)].indexOf(AvailableIDs[i]) );
+      if (found) {
+        AvailableList += PeopleNames[PeopleIDs.indexOf(AvailableIDs[i])]+"<br>";
+        AvailableCount++;
+      } else
+        UnavailableList += PeopleNames[PeopleIDs.indexOf(AvailableIDs[i])]+"<br>";
+    }
+    document.getElementById("Available").innerHTML = AvailableList;
+    document.getElementById("Unavailable").innerHTML = UnavailableList;
+    document.getElementById("AvailableFraction").innerHTML = AvailableCount+"/"+Count;
+    document.getElementById("AvailableDate").innerHTML = TimeString;
+    document.getElementById("SlotAvailability").style.display='';
+    document.getElementById("LeftPanel").style.display='none';
+  }
+
+  function ShowSlotByTouch(event) {
+    if (event.touches.length==1) {
+      var touch = event.touches[0];
+      var elem = document.elementFromPoint(touch.clientX, touch.clientY);
+      var Time = Number(elem.id.replace('GroupTime', ''));
+      ShowSlot(Time);
+    }
+  }
+
+  function ShowSlotByTouchMove(event) {
+    if (event.touches.length==1) {
+      event.preventDefault();
+    }
+    ShowSlotByTouch(event);
+  }
+
+  function RestoreLeftSide(event) {
+    document.getElementById("SlotAvailability").style.display='none';
+    document.getElementById("LeftPanel").style.display='';
+  }
+
+  function ProcessLogin() {
+
+    const params = new URLSearchParams();
+    params.append('id', '38391076');
+    params.append('name', document.getElementById('name').value);
+    params.append('password', document.getElementById('password').value);
+
+    fetch("ProcessLogin.php", {
+      method: "POST",
+      body: params
+    })
+    .then(response => {
+      if (!response.ok) throw new Error("Network response was not ok");
+      return response.text();
+    })
+    .then(responseText => {
+      const PersonID = parseInt(responseText);
+      if (PersonID) {
+        UserID = PersonID;
+        ReColorIndividual();
+        document.getElementById("SignIn").style.display = 'none';
+        document.getElementById("YouGrid").style.display = '';
+        if (-1 === PeopleIDs.indexOf(UserID)) {
+          PeopleIDs.push(UserID);
+          PeopleNames.push(document.getElementById('name').value);
+        }
+        document.getElementById("UserName").innerHTML = PeopleNames[PeopleIDs.indexOf(UserID)];
+      } else {
+        alert(responseText);
+      }
+    })
+    .catch(error => {
+      console.error("Login error:", error);
+    });
+
+    return false;
+  }
+
+  function SelectFromHere(e) {
+    timeOfSlot = Number(e.target.getAttribute("data-time"));
+    slotID = TimeOfSlot.indexOf(timeOfSlot);
+    ChangeToAvailable = (-1 == AvailableAtSlot[slotID].indexOf(UserID) );
+    IsMouseDown=true;
+
+    ToCol = Number(e.target.getAttribute("data-col"));
+    ToRow = Number(e.target.getAttribute("data-row"));
+    FromCol = ToCol;
+    FromRow = ToRow;
+    ReColorIndividual();
+  }
+
+
+  function SelectToHere(e) {
+    if (IsMouseDown) {
+      ToCol = Number(e.target.getAttribute("data-col"));
+      ToRow = Number(e.target.getAttribute("data-row"));
+      ReColorIndividual();
+    }
+  }
+
+  function SelectFromHereByTouch(event) {
+    if (event.touches.length==1) {
+//      event.preventDefault();
+ //     var touch = event.touches[0];
+ //     var elem = document.elementFromPoint(touch.clientX, touch.clientY);
+ //     var Time = Number(elem.id.replace('YouTime', ''));
+      SelectFromHere(event);
+    } else {
+      return true;
+    }
+  }
+
+  function SelectToHereByTouch(event) {
+    if (event.touches.length==1) {
+      event.preventDefault();
+      var touch = event.touches[0];
+      var elem = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (elem.hasAttribute("data-col")) {
+        ToCol = Number(elem.getAttribute("data-col"));
+        ToRow = Number(elem.getAttribute("data-row"));
+        ReColorIndividual();
+      }
+    } else {
+      return true;
+    }
+  }
+
+  function SelectStopByTouch(event) {
+    SelectStop();
+  }
+
+  function SelectStop() {
+    if (!IsMouseDown) return;
+    var TimesToToggle = new Array();
+	  var binaryAvailability = "";
+    for (var i=0;i<TimeOfSlot.length;i++) {
+      if (FromCol<ToCol) { ColA=FromCol; ColB=ToCol; } else { ColA=ToCol; ColB=FromCol; }
+      if (FromRow<ToRow) { RowA=FromRow; RowB=ToRow; } else { RowA=ToRow; RowB=FromRow; }
+      
+      var currentElement = document.getElementById("YouTime"+TimeOfSlot[i]);
+      if (currentElement) {
+        var dataCol = Number(currentElement.getAttribute("data-col"));
+        var dataRow = Number(currentElement.getAttribute("data-row"));
+
+        var WithinX = ((ColA<=dataCol)&&(dataCol<=ColB));
+        var WithinY = ((RowA<=dataRow)&&(dataRow<=RowB));
+      
+        if (WithinX && WithinY) {
+          TimesToToggle.push(TimeOfSlot[i]);
+          if (ChangeToAvailable && (-1==AvailableAtSlot[i].indexOf(UserID)))
+            AvailableAtSlot[i].push(UserID);
+          if ((!ChangeToAvailable) && (-1!=AvailableAtSlot[i].indexOf(UserID))) {
+            SplitSpot = AvailableAtSlot[i].indexOf(UserID);
+            AvailableAtSlot[i].splice(SplitSpot,1);
+          }
+        }
+        if (-1!=AvailableAtSlot[i].indexOf(UserID)) {
+           binaryAvailability += "1";
+        } else {
+          binaryAvailability += "0";
+        }
+      }
+    }
+
+    const params = new URLSearchParams();
+    params.append('person', UserID);
+    params.append('event', 38391076);
+    params.append('slots', TimesToToggle.join(","));
+    params.append('availability', binaryAvailability);
+    params.append('password', document.getElementById('password').value);
+    params.append('ChangeToAvailable', ChangeToAvailable);
+
+    fetch("SaveTimes.php", {
+      method: 'POST',
+      body: params
+    })
+    .then(response => response.text())
+    .then(data => console.log(data));
+
+    IsMouseDown=false;
+    FromCol=-1; ToCol=-1; FromRow=-1; ToRow=-1;
+    ReColorIndividual();
+    ReColorGroup();
+  }
+
+TimeOfSlot[0]=1789347600;
+AvailableAtSlot[0]=new Array();
+TimeOfSlot[1]=1789348500;
+AvailableAtSlot[1]=new Array();
+TimeOfSlot[2]=1789349400;
+AvailableAtSlot[2]=new Array();
+TimeOfSlot[3]=1789350300;
+AvailableAtSlot[3]=new Array();
+TimeOfSlot[4]=1789351200;
+AvailableAtSlot[4]=new Array();
+TimeOfSlot[5]=1789352100;
+AvailableAtSlot[5]=new Array();
+TimeOfSlot[6]=1789353000;
+AvailableAtSlot[6]=new Array();
+TimeOfSlot[7]=1789353900;
+AvailableAtSlot[7]=new Array();
+TimeOfSlot[8]=1789354800;
+AvailableAtSlot[8]=new Array();
+TimeOfSlot[9]=1789355700;
+AvailableAtSlot[9]=new Array();
+TimeOfSlot[10]=1789356600;
+AvailableAtSlot[10]=new Array();
+TimeOfSlot[11]=1789357500;
+AvailableAtSlot[11]=new Array();
+TimeOfSlot[12]=1789358400;
+AvailableAtSlot[12]=new Array();
+TimeOfSlot[13]=1789359300;
+AvailableAtSlot[13]=new Array();
+TimeOfSlot[14]=1789360200;
+AvailableAtSlot[14]=new Array();
+TimeOfSlot[15]=1789361100;
+AvailableAtSlot[15]=new Array();
+TimeOfSlot[16]=1789362000;
+AvailableAtSlot[16]=new Array();
+TimeOfSlot[17]=1789362900;
+AvailableAtSlot[17]=new Array();
+TimeOfSlot[18]=1789363800;
+AvailableAtSlot[18]=new Array();
+TimeOfSlot[19]=1789364700;
+AvailableAtSlot[19]=new Array();
+TimeOfSlot[20]=1789365600;
+AvailableAtSlot[20]=new Array();
+TimeOfSlot[21]=1789366500;
+AvailableAtSlot[21]=new Array();
+TimeOfSlot[22]=1789367400;
+AvailableAtSlot[22]=new Array();
+TimeOfSlot[23]=1789368300;
+AvailableAtSlot[23]=new Array();
+TimeOfSlot[24]=1789369200;
+AvailableAtSlot[24]=new Array();
+TimeOfSlot[25]=1789370100;
+AvailableAtSlot[25]=new Array();
+TimeOfSlot[26]=1789371000;
+AvailableAtSlot[26]=new Array();
+TimeOfSlot[27]=1789371900;
+AvailableAtSlot[27]=new Array();
+TimeOfSlot[28]=1789372800;
+AvailableAtSlot[28]=new Array();
+TimeOfSlot[29]=1789373700;
+AvailableAtSlot[29]=new Array();
+TimeOfSlot[30]=1789374600;
+AvailableAtSlot[30]=new Array();
+TimeOfSlot[31]=1789375500;
+AvailableAtSlot[31]=new Array();
+TimeOfSlot[32]=1789376400;
+AvailableAtSlot[32]=new Array();
+TimeOfSlot[33]=1789377300;
+AvailableAtSlot[33]=new Array();
+TimeOfSlot[34]=1789378200;
+AvailableAtSlot[34]=new Array();
+TimeOfSlot[35]=1789379100;
+AvailableAtSlot[35]=new Array();
+TimeOfSlot[36]=1789434000;
+AvailableAtSlot[36]=new Array();
+TimeOfSlot[37]=1789434900;
+AvailableAtSlot[37]=new Array();
+TimeOfSlot[38]=1789435800;
+AvailableAtSlot[38]=new Array();
+TimeOfSlot[39]=1789436700;
+AvailableAtSlot[39]=new Array();
+TimeOfSlot[40]=1789437600;
+AvailableAtSlot[40]=new Array();
+TimeOfSlot[41]=1789438500;
+AvailableAtSlot[41]=new Array();
+TimeOfSlot[42]=1789439400;
+AvailableAtSlot[42]=new Array();
+TimeOfSlot[43]=1789440300;
+AvailableAtSlot[43]=new Array();
+TimeOfSlot[44]=1789441200;
+AvailableAtSlot[44]=new Array();
+TimeOfSlot[45]=1789442100;
+AvailableAtSlot[45]=new Array();
+TimeOfSlot[46]=1789443000;
+AvailableAtSlot[46]=new Array();
+TimeOfSlot[47]=1789443900;
+AvailableAtSlot[47]=new Array();
+TimeOfSlot[48]=1789444800;
+AvailableAtSlot[48]=new Array();
+TimeOfSlot[49]=1789445700;
+AvailableAtSlot[49]=new Array();
+TimeOfSlot[50]=1789446600;
+AvailableAtSlot[50]=new Array();
+TimeOfSlot[51]=1789447500;
+AvailableAtSlot[51]=new Array();
+TimeOfSlot[52]=1789448400;
+AvailableAtSlot[52]=new Array();
+TimeOfSlot[53]=1789449300;
+AvailableAtSlot[53]=new Array();
+TimeOfSlot[54]=1789450200;
+AvailableAtSlot[54]=new Array();
+TimeOfSlot[55]=1789451100;
+AvailableAtSlot[55]=new Array();
+TimeOfSlot[56]=1789452000;
+AvailableAtSlot[56]=new Array();
+TimeOfSlot[57]=1789452900;
+AvailableAtSlot[57]=new Array();
+TimeOfSlot[58]=1789453800;
+AvailableAtSlot[58]=new Array();
+TimeOfSlot[59]=1789454700;
+AvailableAtSlot[59]=new Array();
+TimeOfSlot[60]=1789455600;
+AvailableAtSlot[60]=new Array();
+TimeOfSlot[61]=1789456500;
+AvailableAtSlot[61]=new Array();
+TimeOfSlot[62]=1789457400;
+AvailableAtSlot[62]=new Array();
+TimeOfSlot[63]=1789458300;
+AvailableAtSlot[63]=new Array();
+TimeOfSlot[64]=1789459200;
+AvailableAtSlot[64]=new Array();
+TimeOfSlot[65]=1789460100;
+AvailableAtSlot[65]=new Array();
+TimeOfSlot[66]=1789461000;
+AvailableAtSlot[66]=new Array();
+TimeOfSlot[67]=1789461900;
+AvailableAtSlot[67]=new Array();
+TimeOfSlot[68]=1789462800;
+AvailableAtSlot[68]=new Array();
+TimeOfSlot[69]=1789463700;
+AvailableAtSlot[69]=new Array();
+TimeOfSlot[70]=1789464600;
+AvailableAtSlot[70]=new Array();
+TimeOfSlot[71]=1789465500;
+AvailableAtSlot[71]=new Array();
+TimeOfSlot[72]=1789520400;
+AvailableAtSlot[72]=new Array();
+TimeOfSlot[73]=1789521300;
+AvailableAtSlot[73]=new Array();
+TimeOfSlot[74]=1789522200;
+AvailableAtSlot[74]=new Array();
+TimeOfSlot[75]=1789523100;
+AvailableAtSlot[75]=new Array();
+TimeOfSlot[76]=1789524000;
+AvailableAtSlot[76]=new Array();
+TimeOfSlot[77]=1789524900;
+AvailableAtSlot[77]=new Array();
+TimeOfSlot[78]=1789525800;
+AvailableAtSlot[78]=new Array();
+TimeOfSlot[79]=1789526700;
+AvailableAtSlot[79]=new Array();
+TimeOfSlot[80]=1789527600;
+AvailableAtSlot[80]=new Array();
+TimeOfSlot[81]=1789528500;
+AvailableAtSlot[81]=new Array();
+TimeOfSlot[82]=1789529400;
+AvailableAtSlot[82]=new Array();
+TimeOfSlot[83]=1789530300;
+AvailableAtSlot[83]=new Array();
+TimeOfSlot[84]=1789531200;
+AvailableAtSlot[84]=new Array();
+TimeOfSlot[85]=1789532100;
+AvailableAtSlot[85]=new Array();
+TimeOfSlot[86]=1789533000;
+AvailableAtSlot[86]=new Array();
+TimeOfSlot[87]=1789533900;
+AvailableAtSlot[87]=new Array();
+TimeOfSlot[88]=1789534800;
+AvailableAtSlot[88]=new Array();
+TimeOfSlot[89]=1789535700;
+AvailableAtSlot[89]=new Array();
+TimeOfSlot[90]=1789536600;
+AvailableAtSlot[90]=new Array();
+TimeOfSlot[91]=1789537500;
+AvailableAtSlot[91]=new Array();
+TimeOfSlot[92]=1789538400;
+AvailableAtSlot[92]=new Array();
+TimeOfSlot[93]=1789539300;
+AvailableAtSlot[93]=new Array();
+TimeOfSlot[94]=1789540200;
+AvailableAtSlot[94]=new Array();
+TimeOfSlot[95]=1789541100;
+AvailableAtSlot[95]=new Array();
+TimeOfSlot[96]=1789542000;
+AvailableAtSlot[96]=new Array();
+TimeOfSlot[97]=1789542900;
+AvailableAtSlot[97]=new Array();
+TimeOfSlot[98]=1789543800;
+AvailableAtSlot[98]=new Array();
+TimeOfSlot[99]=1789544700;
+AvailableAtSlot[99]=new Array();
+TimeOfSlot[100]=1789545600;
+AvailableAtSlot[100]=new Array();
+TimeOfSlot[101]=1789546500;
+AvailableAtSlot[101]=new Array();
+TimeOfSlot[102]=1789547400;
+AvailableAtSlot[102]=new Array();
+TimeOfSlot[103]=1789548300;
+AvailableAtSlot[103]=new Array();
+TimeOfSlot[104]=1789549200;
+AvailableAtSlot[104]=new Array();
+TimeOfSlot[105]=1789550100;
+AvailableAtSlot[105]=new Array();
+TimeOfSlot[106]=1789551000;
+AvailableAtSlot[106]=new Array();
+TimeOfSlot[107]=1789551900;
+AvailableAtSlot[107]=new Array();
+PeopleNames[0] = 'Alice';PeopleIDs[0] = 152005213;PeopleNames[1] = 'Bob';PeopleIDs[1] = 152005215;PeopleNames[2] = 'Carol';PeopleIDs[2] = 152005554;PeopleNames[3] = 'Dave';PeopleIDs[3] = 152009631;PeopleNames[4] = 'Zoë O\&#039;Brien';PeopleIDs[4] = 152005217;PeopleNames[5] = '王小明';PeopleIDs[5] = 152005219;AvailableAtSlot[63].push(152005213);
+AvailableAtSlot[62].push(152005213);
+AvailableAtSlot[61].push(152005213);
+AvailableAtSlot[60].push(152005213);
+AvailableAtSlot[59].push(152005213);
+AvailableAtSlot[58].push(152005213);
+AvailableAtSlot[57].push(152005213);
+AvailableAtSlot[56].push(152005213);
+AvailableAtSlot[11].push(152005213);
+AvailableAtSlot[10].push(152005213);
+AvailableAtSlot[9].push(152005213);
+AvailableAtSlot[8].push(152005213);
+AvailableAtSlot[7].push(152005213);
+AvailableAtSlot[6].push(152005213);
+AvailableAtSlot[5].push(152005213);
+AvailableAtSlot[4].push(152005213);
+AvailableAtSlot[3].push(152005213);
+AvailableAtSlot[2].push(152005213);
+AvailableAtSlot[1].push(152005213);
+AvailableAtSlot[0].push(152005213);
+AvailableAtSlot[107].push(152005215);
+AvailableAtSlot[106].push(152005215);
+AvailableAtSlot[105].push(152005215);
+AvailableAtSlot[104].push(152005215);
+AvailableAtSlot[103].push(152005215);
+AvailableAtSlot[102].push(152005215);
+AvailableAtSlot[101].push(152005215);
+AvailableAtSlot[100].push(152005215);
+AvailableAtSlot[99].push(152005215);
+AvailableAtSlot[98].push(152005215);
+AvailableAtSlot[97].push(152005215);
+AvailableAtSlot[96].push(152005215);
+AvailableAtSlot[95].push(152005215);
+AvailableAtSlot[94].push(152005215);
+AvailableAtSlot[93].push(152005215);
+AvailableAtSlot[92].push(152005215);
+AvailableAtSlot[91].push(152005215);
+AvailableAtSlot[90].push(152005215);
+AvailableAtSlot[89].push(152005215);
+AvailableAtSlot[88].push(152005215);
+AvailableAtSlot[87].push(152005215);
+AvailableAtSlot[86].push(152005215);
+AvailableAtSlot[85].push(152005215);
+AvailableAtSlot[84].push(152005215);
+AvailableAtSlot[83].push(152005215);
+AvailableAtSlot[82].push(152005215);
+AvailableAtSlot[81].push(152005215);
+AvailableAtSlot[80].push(152005215);
+AvailableAtSlot[79].push(152005215);
+AvailableAtSlot[78].push(152005215);
+AvailableAtSlot[77].push(152005215);
+AvailableAtSlot[76].push(152005215);
+AvailableAtSlot[75].push(152005215);
+AvailableAtSlot[74].push(152005215);
+AvailableAtSlot[73].push(152005215);
+AvailableAtSlot[72].push(152005215);
+AvailableAtSlot[59].push(152005215);
+AvailableAtSlot[58].push(152005215);
+AvailableAtSlot[57].push(152005215);
+AvailableAtSlot[56].push(152005215);
+AvailableAtSlot[15].push(152005215);
+AvailableAtSlot[14].push(152005215);
+AvailableAtSlot[13].push(152005215);
+AvailableAtSlot[12].push(152005215);
+AvailableAtSlot[11].push(152005215);
+AvailableAtSlot[10].push(152005215);
+AvailableAtSlot[9].push(152005215);
+AvailableAtSlot[8].push(152005215);
+AvailableAtSlot[7].push(152005215);
+AvailableAtSlot[6].push(152005215);
+AvailableAtSlot[5].push(152005215);
+AvailableAtSlot[4].push(152005215);
+AvailableAtSlot[107].push(152005217);
+AvailableAtSlot[106].push(152005217);
+AvailableAtSlot[105].push(152005217);
+AvailableAtSlot[104].push(152005217);
+AvailableAtSlot[103].push(152005217);
+AvailableAtSlot[102].push(152005217);
+AvailableAtSlot[101].push(152005217);
+AvailableAtSlot[100].push(152005217);
+AvailableAtSlot[99].push(152005217);
+AvailableAtSlot[98].push(152005217);
+AvailableAtSlot[97].push(152005217);
+AvailableAtSlot[96].push(152005217);
+AvailableAtSlot[95].push(152005217);
+AvailableAtSlot[94].push(152005217);
+AvailableAtSlot[93].push(152005217);
+AvailableAtSlot[92].push(152005217);
+AvailableAtSlot[91].push(152005217);
+AvailableAtSlot[90].push(152005217);
+AvailableAtSlot[89].push(152005217);
+AvailableAtSlot[88].push(152005217);
+AvailableAtSlot[87].push(152005217);
+AvailableAtSlot[86].push(152005217);
+AvailableAtSlot[85].push(152005217);
+AvailableAtSlot[84].push(152005217);
+AvailableAtSlot[83].push(152005217);
+AvailableAtSlot[82].push(152005217);
+AvailableAtSlot[81].push(152005217);
+AvailableAtSlot[80].push(152005217);
+AvailableAtSlot[79].push(152005217);
+AvailableAtSlot[78].push(152005217);
+AvailableAtSlot[77].push(152005217);
+AvailableAtSlot[76].push(152005217);
+AvailableAtSlot[75].push(152005217);
+AvailableAtSlot[74].push(152005217);
+AvailableAtSlot[73].push(152005217);
+AvailableAtSlot[72].push(152005217);
+AvailableAtSlot[9].push(152005217);
+AvailableAtSlot[8].push(152005217);
+AvailableAtSlot[63].push(152005219);
+AvailableAtSlot[62].push(152005219);
+AvailableAtSlot[61].push(152005219);
+AvailableAtSlot[60].push(152005219);
+AvailableAtSlot[59].push(152005219);
+AvailableAtSlot[58].push(152005219);
+var AvailableIDs=new Array();AvailableIDs.push(152005213);AvailableIDs.push(152005215);AvailableIDs.push(152005217);AvailableIDs.push(152005219);
+  document.addEventListener("DOMContentLoaded", function() {
+
+    var select = document.getElementById("ParticipantTimeZone");
+          loadTimezoneOptions("ParticipantTimeZone");
+      document.getElementById("ParticipantTimeZone").style.display='';
+      document.getElementById("YourTimeZone").innerHTML = 'Your Time Zone: ';
+      if (select.value != "Asia/Shanghai") {
+        LoadAvailabilityGrids();
+      }
+      });
+
+</script>
+<div id="NewEventNameDiv" style="padding:20px 0px 20px 20px;font-size:30px;">
+
+
+Full e2e 0907<br>
+
+
+<div style="font-size: 12px;padding-top:12px;">To invite people to this event, you can <a href="mailto:?subject=Scheduling Full e2e 0907&body=Hi All,%0A%0AI'm trying to see when we're all available for: Full e2e 0907 %0A%0APlease visit%0A    https://www.when2meet.com/?38391076-BNcoG %0Ato let me know when you're available.%0A%0AThanks,%0A%0A">email them</a>, send them a <a href="https://www.facebook.com/dialog/send?app_id=259470627404374&link=https://www.when2meet.com/?38391076-BNcoG&redirect_uri=https://www.when2meet.com/thanks.php?name=Full+e2e+0907">Facebook message</a>, or just direct them to https://www.when2meet.com/?38391076-BNcoG<br>
+<div id="ChooseTimeZone" style="padding-top:12px; height:12px;">
+<span id="YourTimeZone">&nbsp;</span>
+<select name="ParticipantTimeZone" id="ParticipantTimeZone" onchange="LoadAvailabilityGrids();" style="display:none;"></select><br>
+</div>
+
+</div> 
+</div>
+
+<div id=AvailabilityGrids><script type="text/javascript">PeopleNames[0] = 'Alice';PeopleIDs[0] = 152005213;PeopleNames[1] = 'Bob';PeopleIDs[1] = 152005215;PeopleNames[2] = 'Carol';PeopleIDs[2] = 152005554;PeopleNames[3] = 'Dave';PeopleIDs[3] = 152009631;PeopleNames[4] = 'Zoë O\&#039;Brien';PeopleIDs[4] = 152005217;PeopleNames[5] = '王小明';PeopleIDs[5] = 152005219;
+// hexAvailability: 0fff00000000000ff00000000000
+
+// hexAvailability: 00fff0000000000f000fffffffff
+
+// hexAvailability: 000c000000000000000fffffffff
+
+// hexAvailability: 0000000000000003f00000000000
+
+// hexAvailability: 0000000000000000000000000000
+var AvailableIDs=new Array();AvailableIDs.push(152005213);AvailableIDs.push(152005215);AvailableIDs.push(152005217);AvailableIDs.push(152005219);
+</script>
+
+<div onselectstart="return false;" style="width:50%;display:inline-block;*display:inline;zoom:1; white-space:nowrap;overflow:auto; vertical-align:top; text-align:center;"><div class='HalfPanel'>
+      <div id="SlotAvailability" style="display:none;">
+      <div class='GridTitle'>
+        <div id="AvailableFraction" style="display:inline-block;*display:inline;zoom:1;"></div>&nbsp;Available        <div class='GridSubtitle'>
+          <div id="AvailableDate"></div>
+          <table>
+          <tr><td width=200 align=center><b><u>Available</u></b></td><td width=200 align=center><b><u>Unavailable</u></b></td></tr>
+          <tr><td valign=top align=center><div id="Available"></td><td valign=top align=center><div id="Unavailable"></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div id='YouAvailability'>
+      <div id='LeftPanel'>
+      <div id="SignIn">
+        <div class='GridTitle'>Sign In<br>
+          <div class='GridSubtitle'>
+            <table>
+            <tr><td>Your Name:</td><td align=left><input style='width:150px' id=name></td></tr>
+            <tr><td>Password (optional):</td><td align=left><input style='width:150px' id=password type=password></td></tr>
+            </table>
+            <input type=button value="Sign In" onclick="ProcessLogin()"><br><br>
+            Name/Password are only for this event.<br>
+            New to this event? Make up a password.<br>
+            Returning? Use the same name/password.          </div>
+        </div>
+      </div>
+    <div id="YouGrid" style='display:none;'>
+  <div class='GridTitle' style='display:inline-block;*display:inline;zoom:1; margin-left:40px;'>
+  <span id='UserName'></span>'s Availability<div class='GridSubtitle'>    <div style='padding:5px;' onselectstart="return true;" >
+      Unavailable<div style='display:inline-block;*display:inline;zoom:1;vertical-align:middle;padding:0px 5px 0px 5px;'>
+      <table width=30 height=10 cellpadding=0 cellspacing=0 style='border: solid 1px black'><tr>
+      <td bgcolor=#ffdede>&nbsp;</td></tr></table></div>
+      Available<div style='display:inline-block;*display:inline;zoom:1;vertical-align:middle;padding:0px 5px 0px 5px;'>
+      <table width=30 height=10 cellpadding=0 cellspacing=0 style='border: solid 1px black'><tr>
+      <td bgcolor=#339900>&nbsp;</td></tr></table></div>
+    </div>
+    
+     Click and Drag to Toggle; Saved Immediately</div>
+  </div><br clear=all>
+  
+  <div style='display:inline-block;*display:inline;zoom:1; vertical-align:bottom;text-align:right;'><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'><div style='text-align:right;width:44px;height:9;font-size:10px;margin:4px 4px 0px 0px;'>9:00  AM&nbsp;</div></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'><div style='text-align:right;width:44px;height:9;font-size:10px;margin:4px 4px 0px 0px;'>10:00  AM&nbsp;</div></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'><div style='text-align:right;width:44px;height:9;font-size:10px;margin:4px 4px 0px 0px;'>11:00  AM&nbsp;</div></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'><div style='text-align:right;width:44px;height:9;font-size:10px;margin:4px 4px 0px 0px;'>12:00  PM&nbsp;</div></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'><div style='text-align:right;width:44px;height:9;font-size:10px;margin:4px 4px 0px 0px;'>1:00  PM&nbsp;</div></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'><div style='text-align:right;width:44px;height:9;font-size:10px;margin:4px 4px 0px 0px;'>2:00  PM&nbsp;</div></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'><div style='text-align:right;width:44px;height:9;font-size:10px;margin:4px 4px 0px 0px;'>3:00  PM&nbsp;</div></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'><div style='text-align:right;width:44px;height:9;font-size:10px;margin:4px 4px 0px 0px;'>4:00  PM&nbsp;</div></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'><div style='text-align:right;width:44px;height:9;font-size:10px;margin:4px 4px 0px 0px;'>5:00  PM&nbsp;</div></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-bottom:8px;border-right: 1px white solid;'><div style='text-align:right;width:44px;height:9;font-size:10px;margin:4px 4px 0px 0px;'>6:00  PM&nbsp;</div></div></div></div><div style='display:inline-block;*display:inline;zoom:1;vertical-align:bottom;text-align:right;'">
+  
+  <div style="display:inline-block;*display:inline;zoom:1;text-align:center;font-size:10px;width:44px;padding-right:1px;">Sep 14<br><div style='display:inline-block;*display:inline;zoom:1;font-size:16px;'>Mon</div></div><div style="display:inline-block;*display:inline;zoom:1;text-align:center;font-size:10px;width:44px;padding-right:1px;">Sep 15<br><div style='display:inline-block;*display:inline;zoom:1;font-size:16px;'>Tue</div></div><div style="display:inline-block;*display:inline;zoom:1;text-align:center;font-size:10px;width:44px;padding-right:1px;">Sep 16<br><div style='display:inline-block;*display:inline;zoom:1;font-size:16px;'>Wed</div></div><div id='YouGridSlots' class='GroupGrid' style='background-color:white; display:inline'><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789347600' data-col="0" data-row="0" data-time="1789347600" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black solid;'></div>
+<div id='YouTime1789434000' data-col="1" data-row="0" data-time="1789434000" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black solid;'></div>
+<div id='YouTime1789520400' data-col="2" data-row="0" data-time="1789520400" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black solid;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789348500' data-col="0" data-row="1" data-time="1789348500" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789434900' data-col="1" data-row="1" data-time="1789434900" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789521300' data-col="2" data-row="1" data-time="1789521300" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789349400' data-col="0" data-row="2" data-time="1789349400" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black dotted;'></div>
+<div id='YouTime1789435800' data-col="1" data-row="2" data-time="1789435800" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black dotted;'></div>
+<div id='YouTime1789522200' data-col="2" data-row="2" data-time="1789522200" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black dotted;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789350300' data-col="0" data-row="3" data-time="1789350300" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789436700' data-col="1" data-row="3" data-time="1789436700" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789523100' data-col="2" data-row="3" data-time="1789523100" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789351200' data-col="0" data-row="4" data-time="1789351200" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black solid;'></div>
+<div id='YouTime1789437600' data-col="1" data-row="4" data-time="1789437600" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black solid;'></div>
+<div id='YouTime1789524000' data-col="2" data-row="4" data-time="1789524000" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black solid;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789352100' data-col="0" data-row="5" data-time="1789352100" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789438500' data-col="1" data-row="5" data-time="1789438500" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789524900' data-col="2" data-row="5" data-time="1789524900" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789353000' data-col="0" data-row="6" data-time="1789353000" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black dotted;'></div>
+<div id='YouTime1789439400' data-col="1" data-row="6" data-time="1789439400" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black dotted;'></div>
+<div id='YouTime1789525800' data-col="2" data-row="6" data-time="1789525800" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black dotted;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789353900' data-col="0" data-row="7" data-time="1789353900" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789440300' data-col="1" data-row="7" data-time="1789440300" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789526700' data-col="2" data-row="7" data-time="1789526700" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789354800' data-col="0" data-row="8" data-time="1789354800" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black solid;'></div>
+<div id='YouTime1789441200' data-col="1" data-row="8" data-time="1789441200" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black solid;'></div>
+<div id='YouTime1789527600' data-col="2" data-row="8" data-time="1789527600" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black solid;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789355700' data-col="0" data-row="9" data-time="1789355700" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789442100' data-col="1" data-row="9" data-time="1789442100" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789528500' data-col="2" data-row="9" data-time="1789528500" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789356600' data-col="0" data-row="10" data-time="1789356600" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black dotted;'></div>
+<div id='YouTime1789443000' data-col="1" data-row="10" data-time="1789443000" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black dotted;'></div>
+<div id='YouTime1789529400' data-col="2" data-row="10" data-time="1789529400" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black dotted;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789357500' data-col="0" data-row="11" data-time="1789357500" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789443900' data-col="1" data-row="11" data-time="1789443900" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789530300' data-col="2" data-row="11" data-time="1789530300" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789358400' data-col="0" data-row="12" data-time="1789358400" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black solid;'></div>
+<div id='YouTime1789444800' data-col="1" data-row="12" data-time="1789444800" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black solid;'></div>
+<div id='YouTime1789531200' data-col="2" data-row="12" data-time="1789531200" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black solid;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789359300' data-col="0" data-row="13" data-time="1789359300" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789445700' data-col="1" data-row="13" data-time="1789445700" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789532100' data-col="2" data-row="13" data-time="1789532100" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789360200' data-col="0" data-row="14" data-time="1789360200" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black dotted;'></div>
+<div id='YouTime1789446600' data-col="1" data-row="14" data-time="1789446600" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black dotted;'></div>
+<div id='YouTime1789533000' data-col="2" data-row="14" data-time="1789533000" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black dotted;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789361100' data-col="0" data-row="15" data-time="1789361100" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789447500' data-col="1" data-row="15" data-time="1789447500" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789533900' data-col="2" data-row="15" data-time="1789533900" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789362000' data-col="0" data-row="16" data-time="1789362000" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black solid;'></div>
+<div id='YouTime1789448400' data-col="1" data-row="16" data-time="1789448400" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black solid;'></div>
+<div id='YouTime1789534800' data-col="2" data-row="16" data-time="1789534800" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black solid;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789362900' data-col="0" data-row="17" data-time="1789362900" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789449300' data-col="1" data-row="17" data-time="1789449300" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789535700' data-col="2" data-row="17" data-time="1789535700" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789363800' data-col="0" data-row="18" data-time="1789363800" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black dotted;'></div>
+<div id='YouTime1789450200' data-col="1" data-row="18" data-time="1789450200" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black dotted;'></div>
+<div id='YouTime1789536600' data-col="2" data-row="18" data-time="1789536600" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black dotted;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789364700' data-col="0" data-row="19" data-time="1789364700" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789451100' data-col="1" data-row="19" data-time="1789451100" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789537500' data-col="2" data-row="19" data-time="1789537500" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789365600' data-col="0" data-row="20" data-time="1789365600" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black solid;'></div>
+<div id='YouTime1789452000' data-col="1" data-row="20" data-time="1789452000" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black solid;'></div>
+<div id='YouTime1789538400' data-col="2" data-row="20" data-time="1789538400" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black solid;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789366500' data-col="0" data-row="21" data-time="1789366500" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789452900' data-col="1" data-row="21" data-time="1789452900" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789539300' data-col="2" data-row="21" data-time="1789539300" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789367400' data-col="0" data-row="22" data-time="1789367400" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black dotted;'></div>
+<div id='YouTime1789453800' data-col="1" data-row="22" data-time="1789453800" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black dotted;'></div>
+<div id='YouTime1789540200' data-col="2" data-row="22" data-time="1789540200" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black dotted;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789368300' data-col="0" data-row="23" data-time="1789368300" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789454700' data-col="1" data-row="23" data-time="1789454700" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789541100' data-col="2" data-row="23" data-time="1789541100" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789369200' data-col="0" data-row="24" data-time="1789369200" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black solid;'></div>
+<div id='YouTime1789455600' data-col="1" data-row="24" data-time="1789455600" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black solid;'></div>
+<div id='YouTime1789542000' data-col="2" data-row="24" data-time="1789542000" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black solid;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789370100' data-col="0" data-row="25" data-time="1789370100" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789456500' data-col="1" data-row="25" data-time="1789456500" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789542900' data-col="2" data-row="25" data-time="1789542900" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789371000' data-col="0" data-row="26" data-time="1789371000" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black dotted;'></div>
+<div id='YouTime1789457400' data-col="1" data-row="26" data-time="1789457400" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black dotted;'></div>
+<div id='YouTime1789543800' data-col="2" data-row="26" data-time="1789543800" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black dotted;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789371900' data-col="0" data-row="27" data-time="1789371900" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789458300' data-col="1" data-row="27" data-time="1789458300" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789544700' data-col="2" data-row="27" data-time="1789544700" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789372800' data-col="0" data-row="28" data-time="1789372800" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black solid;'></div>
+<div id='YouTime1789459200' data-col="1" data-row="28" data-time="1789459200" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black solid;'></div>
+<div id='YouTime1789545600' data-col="2" data-row="28" data-time="1789545600" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black solid;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789373700' data-col="0" data-row="29" data-time="1789373700" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789460100' data-col="1" data-row="29" data-time="1789460100" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789546500' data-col="2" data-row="29" data-time="1789546500" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789374600' data-col="0" data-row="30" data-time="1789374600" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black dotted;'></div>
+<div id='YouTime1789461000' data-col="1" data-row="30" data-time="1789461000" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black dotted;'></div>
+<div id='YouTime1789547400' data-col="2" data-row="30" data-time="1789547400" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black dotted;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789375500' data-col="0" data-row="31" data-time="1789375500" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789461900' data-col="1" data-row="31" data-time="1789461900" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789548300' data-col="2" data-row="31" data-time="1789548300" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789376400' data-col="0" data-row="32" data-time="1789376400" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black solid;'></div>
+<div id='YouTime1789462800' data-col="1" data-row="32" data-time="1789462800" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black solid;'></div>
+<div id='YouTime1789549200' data-col="2" data-row="32" data-time="1789549200" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black solid;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789377300' data-col="0" data-row="33" data-time="1789377300" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789463700' data-col="1" data-row="33" data-time="1789463700" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;'></div>
+<div id='YouTime1789550100' data-col="2" data-row="33" data-time="1789550100" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789378200' data-col="0" data-row="34" data-time="1789378200" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black dotted;'></div>
+<div id='YouTime1789464600' data-col="1" data-row="34" data-time="1789464600" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black dotted;'></div>
+<div id='YouTime1789551000' data-col="2" data-row="34" data-time="1789551000" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;border-top: 1px black dotted;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='YouTime1789379100' data-col="0" data-row="35" data-time="1789379100" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;margin-bottom:7px;border-bottom: 1px black solid;'></div>
+<div id='YouTime1789465500' data-col="1" data-row="35" data-time="1789465500" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;margin-bottom:7px;border-bottom: 1px black solid;'></div>
+<div id='YouTime1789551900' data-col="2" data-row="35" data-time="1789551900" onmousedown='SelectFromHere(event);'  onmouseover='SelectToHere(event);'  ontouchstart='SelectFromHereByTouch(event);'  ontouchmove='SelectToHereByTouch(event);'  ontouchend='SelectStopByTouch(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffdede;margin-bottom:7px;border-bottom: 1px black solid;border-right: 1px black solid;'></div>
+</div></div></div></div></div></div></div><br><br></div><div onselectstart="return false;" style="width:50%;display:inline-block;*display:inline;zoom:1; white-space:nowrap;overflow:auto; vertical-align:top; text-align:center;"><div class='HalfPanel'>
+    <div id='GroupAvailability'>
+    <div id="GroupGrid">
+  <div class='GridTitle' style='display:inline-block;*display:inline;zoom:1; margin-left:40px;'>
+  Group's Availability<div class='GridSubtitle'><div style='padding:5px';><div id='MinAvailable' style='display:inline-block;*display:inline;zoom:1;'>0/4</div>&nbsp;Available<div id='GroupKey' style='display:inline-block;*display:inline;zoom:1;vertical-align:middle;padding:0px 5px 0px 5px;'><table width=100 height=10 cellpadding=0 cellspacing=0 style='border: solid 1px black'><tr><td bgcolor=#ffffff>&nbsp;</td><td bgcolor=#bbddaa>&nbsp;</td><td bgcolor=#77bb55>&nbsp;</td><td bgcolor=#339900>&nbsp;</td></tr></table></div><div id='MaxAvailable' style='display:inline-block;*display:inline;zoom:1;'>3/4</div>&nbsp;Available</div>Mouseover the Calendar to See Who Is Available</div>
+  </div><br clear=all>
+  
+  <div style='display:inline-block;*display:inline;zoom:1; vertical-align:bottom;text-align:right;'><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'><div style='text-align:right;width:44px;height:9;font-size:10px;margin:4px 4px 0px 0px;'>9:00  AM&nbsp;</div></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'><div style='text-align:right;width:44px;height:9;font-size:10px;margin:4px 4px 0px 0px;'>10:00  AM&nbsp;</div></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'><div style='text-align:right;width:44px;height:9;font-size:10px;margin:4px 4px 0px 0px;'>11:00  AM&nbsp;</div></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'><div style='text-align:right;width:44px;height:9;font-size:10px;margin:4px 4px 0px 0px;'>12:00  PM&nbsp;</div></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'><div style='text-align:right;width:44px;height:9;font-size:10px;margin:4px 4px 0px 0px;'>1:00  PM&nbsp;</div></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'><div style='text-align:right;width:44px;height:9;font-size:10px;margin:4px 4px 0px 0px;'>2:00  PM&nbsp;</div></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'><div style='text-align:right;width:44px;height:9;font-size:10px;margin:4px 4px 0px 0px;'>3:00  PM&nbsp;</div></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'><div style='text-align:right;width:44px;height:9;font-size:10px;margin:4px 4px 0px 0px;'>4:00  PM&nbsp;</div></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'><div style='text-align:right;width:44px;height:9;font-size:10px;margin:4px 4px 0px 0px;'>5:00  PM&nbsp;</div></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-top: 1px;border-right: 1px white solid;'></div></div><div style='font-size:0px;vertical-align:top;'><div style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px white solid;margin-bottom:8px;border-right: 1px white solid;'><div style='text-align:right;width:44px;height:9;font-size:10px;margin:4px 4px 0px 0px;'>6:00  PM&nbsp;</div></div></div></div><div style='display:inline-block;*display:inline;zoom:1;vertical-align:bottom;text-align:right;'">
+  
+  <div style="display:inline-block;*display:inline;zoom:1;text-align:center;font-size:10px;width:44px;padding-right:1px;">Sep 14<br><div style='display:inline-block;*display:inline;zoom:1;font-size:16px;'>Mon</div></div><div style="display:inline-block;*display:inline;zoom:1;text-align:center;font-size:10px;width:44px;padding-right:1px;">Sep 15<br><div style='display:inline-block;*display:inline;zoom:1;font-size:16px;'>Tue</div></div><div style="display:inline-block;*display:inline;zoom:1;text-align:center;font-size:10px;width:44px;padding-right:1px;">Sep 16<br><div style='display:inline-block;*display:inline;zoom:1;font-size:16px;'>Wed</div></div><div id='GroupGridSlots' class='GroupGrid' style='background-color:white; display:inline'><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789347600' data-col="0" data-row="0" data-time="1789347600" onmouseover='ShowSlot(1789347600,"Mon 14 Sep 2026 09:00:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #bbddaa;border-top: 1px black solid;'></div>
+<div id='GroupTime1789434000' data-col="1" data-row="0" data-time="1789434000" onmouseover='ShowSlot(1789434000,"Tue 15 Sep 2026 09:00:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;border-top: 1px black solid;'></div>
+<div id='GroupTime1789520400' data-col="2" data-row="0" data-time="1789520400" onmouseover='ShowSlot(1789520400,"Wed 16 Sep 2026 09:00:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-top: 1px black solid;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789348500' data-col="0" data-row="1" data-time="1789348500" onmouseover='ShowSlot(1789348500,"Mon 14 Sep 2026 09:15:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #bbddaa;'></div>
+<div id='GroupTime1789434900' data-col="1" data-row="1" data-time="1789434900" onmouseover='ShowSlot(1789434900,"Tue 15 Sep 2026 09:15:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;'></div>
+<div id='GroupTime1789521300' data-col="2" data-row="1" data-time="1789521300" onmouseover='ShowSlot(1789521300,"Wed 16 Sep 2026 09:15:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789349400' data-col="0" data-row="2" data-time="1789349400" onmouseover='ShowSlot(1789349400,"Mon 14 Sep 2026 09:30:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #bbddaa;border-top: 1px black dotted;'></div>
+<div id='GroupTime1789435800' data-col="1" data-row="2" data-time="1789435800" onmouseover='ShowSlot(1789435800,"Tue 15 Sep 2026 09:30:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;border-top: 1px black dotted;'></div>
+<div id='GroupTime1789522200' data-col="2" data-row="2" data-time="1789522200" onmouseover='ShowSlot(1789522200,"Wed 16 Sep 2026 09:30:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-top: 1px black dotted;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789350300' data-col="0" data-row="3" data-time="1789350300" onmouseover='ShowSlot(1789350300,"Mon 14 Sep 2026 09:45:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #bbddaa;'></div>
+<div id='GroupTime1789436700' data-col="1" data-row="3" data-time="1789436700" onmouseover='ShowSlot(1789436700,"Tue 15 Sep 2026 09:45:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;'></div>
+<div id='GroupTime1789523100' data-col="2" data-row="3" data-time="1789523100" onmouseover='ShowSlot(1789523100,"Wed 16 Sep 2026 09:45:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789351200' data-col="0" data-row="4" data-time="1789351200" onmouseover='ShowSlot(1789351200,"Mon 14 Sep 2026 10:00:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-top: 1px black solid;'></div>
+<div id='GroupTime1789437600' data-col="1" data-row="4" data-time="1789437600" onmouseover='ShowSlot(1789437600,"Tue 15 Sep 2026 10:00:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;border-top: 1px black solid;'></div>
+<div id='GroupTime1789524000' data-col="2" data-row="4" data-time="1789524000" onmouseover='ShowSlot(1789524000,"Wed 16 Sep 2026 10:00:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-top: 1px black solid;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789352100' data-col="0" data-row="5" data-time="1789352100" onmouseover='ShowSlot(1789352100,"Mon 14 Sep 2026 10:15:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;'></div>
+<div id='GroupTime1789438500' data-col="1" data-row="5" data-time="1789438500" onmouseover='ShowSlot(1789438500,"Tue 15 Sep 2026 10:15:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;'></div>
+<div id='GroupTime1789524900' data-col="2" data-row="5" data-time="1789524900" onmouseover='ShowSlot(1789524900,"Wed 16 Sep 2026 10:15:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789353000' data-col="0" data-row="6" data-time="1789353000" onmouseover='ShowSlot(1789353000,"Mon 14 Sep 2026 10:30:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-top: 1px black dotted;'></div>
+<div id='GroupTime1789439400' data-col="1" data-row="6" data-time="1789439400" onmouseover='ShowSlot(1789439400,"Tue 15 Sep 2026 10:30:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;border-top: 1px black dotted;'></div>
+<div id='GroupTime1789525800' data-col="2" data-row="6" data-time="1789525800" onmouseover='ShowSlot(1789525800,"Wed 16 Sep 2026 10:30:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-top: 1px black dotted;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789353900' data-col="0" data-row="7" data-time="1789353900" onmouseover='ShowSlot(1789353900,"Mon 14 Sep 2026 10:45:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;'></div>
+<div id='GroupTime1789440300' data-col="1" data-row="7" data-time="1789440300" onmouseover='ShowSlot(1789440300,"Tue 15 Sep 2026 10:45:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;'></div>
+<div id='GroupTime1789526700' data-col="2" data-row="7" data-time="1789526700" onmouseover='ShowSlot(1789526700,"Wed 16 Sep 2026 10:45:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789354800' data-col="0" data-row="8" data-time="1789354800" onmouseover='ShowSlot(1789354800,"Mon 14 Sep 2026 11:00:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #339900;border-top: 1px black solid;'></div>
+<div id='GroupTime1789441200' data-col="1" data-row="8" data-time="1789441200" onmouseover='ShowSlot(1789441200,"Tue 15 Sep 2026 11:00:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;border-top: 1px black solid;'></div>
+<div id='GroupTime1789527600' data-col="2" data-row="8" data-time="1789527600" onmouseover='ShowSlot(1789527600,"Wed 16 Sep 2026 11:00:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-top: 1px black solid;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789355700' data-col="0" data-row="9" data-time="1789355700" onmouseover='ShowSlot(1789355700,"Mon 14 Sep 2026 11:15:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #339900;'></div>
+<div id='GroupTime1789442100' data-col="1" data-row="9" data-time="1789442100" onmouseover='ShowSlot(1789442100,"Tue 15 Sep 2026 11:15:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;'></div>
+<div id='GroupTime1789528500' data-col="2" data-row="9" data-time="1789528500" onmouseover='ShowSlot(1789528500,"Wed 16 Sep 2026 11:15:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789356600' data-col="0" data-row="10" data-time="1789356600" onmouseover='ShowSlot(1789356600,"Mon 14 Sep 2026 11:30:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-top: 1px black dotted;'></div>
+<div id='GroupTime1789443000' data-col="1" data-row="10" data-time="1789443000" onmouseover='ShowSlot(1789443000,"Tue 15 Sep 2026 11:30:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;border-top: 1px black dotted;'></div>
+<div id='GroupTime1789529400' data-col="2" data-row="10" data-time="1789529400" onmouseover='ShowSlot(1789529400,"Wed 16 Sep 2026 11:30:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-top: 1px black dotted;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789357500' data-col="0" data-row="11" data-time="1789357500" onmouseover='ShowSlot(1789357500,"Mon 14 Sep 2026 11:45:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;'></div>
+<div id='GroupTime1789443900' data-col="1" data-row="11" data-time="1789443900" onmouseover='ShowSlot(1789443900,"Tue 15 Sep 2026 11:45:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;'></div>
+<div id='GroupTime1789530300' data-col="2" data-row="11" data-time="1789530300" onmouseover='ShowSlot(1789530300,"Wed 16 Sep 2026 11:45:00 AM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789358400' data-col="0" data-row="12" data-time="1789358400" onmouseover='ShowSlot(1789358400,"Mon 14 Sep 2026 12:00:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #bbddaa;border-top: 1px black solid;'></div>
+<div id='GroupTime1789444800' data-col="1" data-row="12" data-time="1789444800" onmouseover='ShowSlot(1789444800,"Tue 15 Sep 2026 12:00:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;border-top: 1px black solid;'></div>
+<div id='GroupTime1789531200' data-col="2" data-row="12" data-time="1789531200" onmouseover='ShowSlot(1789531200,"Wed 16 Sep 2026 12:00:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-top: 1px black solid;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789359300' data-col="0" data-row="13" data-time="1789359300" onmouseover='ShowSlot(1789359300,"Mon 14 Sep 2026 12:15:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #bbddaa;'></div>
+<div id='GroupTime1789445700' data-col="1" data-row="13" data-time="1789445700" onmouseover='ShowSlot(1789445700,"Tue 15 Sep 2026 12:15:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;'></div>
+<div id='GroupTime1789532100' data-col="2" data-row="13" data-time="1789532100" onmouseover='ShowSlot(1789532100,"Wed 16 Sep 2026 12:15:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789360200' data-col="0" data-row="14" data-time="1789360200" onmouseover='ShowSlot(1789360200,"Mon 14 Sep 2026 12:30:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #bbddaa;border-top: 1px black dotted;'></div>
+<div id='GroupTime1789446600' data-col="1" data-row="14" data-time="1789446600" onmouseover='ShowSlot(1789446600,"Tue 15 Sep 2026 12:30:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;border-top: 1px black dotted;'></div>
+<div id='GroupTime1789533000' data-col="2" data-row="14" data-time="1789533000" onmouseover='ShowSlot(1789533000,"Wed 16 Sep 2026 12:30:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-top: 1px black dotted;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789361100' data-col="0" data-row="15" data-time="1789361100" onmouseover='ShowSlot(1789361100,"Mon 14 Sep 2026 12:45:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #bbddaa;'></div>
+<div id='GroupTime1789447500' data-col="1" data-row="15" data-time="1789447500" onmouseover='ShowSlot(1789447500,"Tue 15 Sep 2026 12:45:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;'></div>
+<div id='GroupTime1789533900' data-col="2" data-row="15" data-time="1789533900" onmouseover='ShowSlot(1789533900,"Wed 16 Sep 2026 12:45:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789362000' data-col="0" data-row="16" data-time="1789362000" onmouseover='ShowSlot(1789362000,"Mon 14 Sep 2026 01:00:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;border-top: 1px black solid;'></div>
+<div id='GroupTime1789448400' data-col="1" data-row="16" data-time="1789448400" onmouseover='ShowSlot(1789448400,"Tue 15 Sep 2026 01:00:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;border-top: 1px black solid;'></div>
+<div id='GroupTime1789534800' data-col="2" data-row="16" data-time="1789534800" onmouseover='ShowSlot(1789534800,"Wed 16 Sep 2026 01:00:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-top: 1px black solid;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789362900' data-col="0" data-row="17" data-time="1789362900" onmouseover='ShowSlot(1789362900,"Mon 14 Sep 2026 01:15:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;'></div>
+<div id='GroupTime1789449300' data-col="1" data-row="17" data-time="1789449300" onmouseover='ShowSlot(1789449300,"Tue 15 Sep 2026 01:15:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;'></div>
+<div id='GroupTime1789535700' data-col="2" data-row="17" data-time="1789535700" onmouseover='ShowSlot(1789535700,"Wed 16 Sep 2026 01:15:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789363800' data-col="0" data-row="18" data-time="1789363800" onmouseover='ShowSlot(1789363800,"Mon 14 Sep 2026 01:30:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;border-top: 1px black dotted;'></div>
+<div id='GroupTime1789450200' data-col="1" data-row="18" data-time="1789450200" onmouseover='ShowSlot(1789450200,"Tue 15 Sep 2026 01:30:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;border-top: 1px black dotted;'></div>
+<div id='GroupTime1789536600' data-col="2" data-row="18" data-time="1789536600" onmouseover='ShowSlot(1789536600,"Wed 16 Sep 2026 01:30:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-top: 1px black dotted;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789364700' data-col="0" data-row="19" data-time="1789364700" onmouseover='ShowSlot(1789364700,"Mon 14 Sep 2026 01:45:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;'></div>
+<div id='GroupTime1789451100' data-col="1" data-row="19" data-time="1789451100" onmouseover='ShowSlot(1789451100,"Tue 15 Sep 2026 01:45:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;'></div>
+<div id='GroupTime1789537500' data-col="2" data-row="19" data-time="1789537500" onmouseover='ShowSlot(1789537500,"Wed 16 Sep 2026 01:45:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789365600' data-col="0" data-row="20" data-time="1789365600" onmouseover='ShowSlot(1789365600,"Mon 14 Sep 2026 02:00:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;border-top: 1px black solid;'></div>
+<div id='GroupTime1789452000' data-col="1" data-row="20" data-time="1789452000" onmouseover='ShowSlot(1789452000,"Tue 15 Sep 2026 02:00:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-top: 1px black solid;'></div>
+<div id='GroupTime1789538400' data-col="2" data-row="20" data-time="1789538400" onmouseover='ShowSlot(1789538400,"Wed 16 Sep 2026 02:00:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-top: 1px black solid;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789366500' data-col="0" data-row="21" data-time="1789366500" onmouseover='ShowSlot(1789366500,"Mon 14 Sep 2026 02:15:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;'></div>
+<div id='GroupTime1789452900' data-col="1" data-row="21" data-time="1789452900" onmouseover='ShowSlot(1789452900,"Tue 15 Sep 2026 02:15:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;'></div>
+<div id='GroupTime1789539300' data-col="2" data-row="21" data-time="1789539300" onmouseover='ShowSlot(1789539300,"Wed 16 Sep 2026 02:15:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789367400' data-col="0" data-row="22" data-time="1789367400" onmouseover='ShowSlot(1789367400,"Mon 14 Sep 2026 02:30:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;border-top: 1px black dotted;'></div>
+<div id='GroupTime1789453800' data-col="1" data-row="22" data-time="1789453800" onmouseover='ShowSlot(1789453800,"Tue 15 Sep 2026 02:30:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #339900;border-top: 1px black dotted;'></div>
+<div id='GroupTime1789540200' data-col="2" data-row="22" data-time="1789540200" onmouseover='ShowSlot(1789540200,"Wed 16 Sep 2026 02:30:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-top: 1px black dotted;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789368300' data-col="0" data-row="23" data-time="1789368300" onmouseover='ShowSlot(1789368300,"Mon 14 Sep 2026 02:45:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;'></div>
+<div id='GroupTime1789454700' data-col="1" data-row="23" data-time="1789454700" onmouseover='ShowSlot(1789454700,"Tue 15 Sep 2026 02:45:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #339900;'></div>
+<div id='GroupTime1789541100' data-col="2" data-row="23" data-time="1789541100" onmouseover='ShowSlot(1789541100,"Wed 16 Sep 2026 02:45:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789369200' data-col="0" data-row="24" data-time="1789369200" onmouseover='ShowSlot(1789369200,"Mon 14 Sep 2026 03:00:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;border-top: 1px black solid;'></div>
+<div id='GroupTime1789455600' data-col="1" data-row="24" data-time="1789455600" onmouseover='ShowSlot(1789455600,"Tue 15 Sep 2026 03:00:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-top: 1px black solid;'></div>
+<div id='GroupTime1789542000' data-col="2" data-row="24" data-time="1789542000" onmouseover='ShowSlot(1789542000,"Wed 16 Sep 2026 03:00:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-top: 1px black solid;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789370100' data-col="0" data-row="25" data-time="1789370100" onmouseover='ShowSlot(1789370100,"Mon 14 Sep 2026 03:15:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;'></div>
+<div id='GroupTime1789456500' data-col="1" data-row="25" data-time="1789456500" onmouseover='ShowSlot(1789456500,"Tue 15 Sep 2026 03:15:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;'></div>
+<div id='GroupTime1789542900' data-col="2" data-row="25" data-time="1789542900" onmouseover='ShowSlot(1789542900,"Wed 16 Sep 2026 03:15:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789371000' data-col="0" data-row="26" data-time="1789371000" onmouseover='ShowSlot(1789371000,"Mon 14 Sep 2026 03:30:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;border-top: 1px black dotted;'></div>
+<div id='GroupTime1789457400' data-col="1" data-row="26" data-time="1789457400" onmouseover='ShowSlot(1789457400,"Tue 15 Sep 2026 03:30:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-top: 1px black dotted;'></div>
+<div id='GroupTime1789543800' data-col="2" data-row="26" data-time="1789543800" onmouseover='ShowSlot(1789543800,"Wed 16 Sep 2026 03:30:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-top: 1px black dotted;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789371900' data-col="0" data-row="27" data-time="1789371900" onmouseover='ShowSlot(1789371900,"Mon 14 Sep 2026 03:45:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;'></div>
+<div id='GroupTime1789458300' data-col="1" data-row="27" data-time="1789458300" onmouseover='ShowSlot(1789458300,"Tue 15 Sep 2026 03:45:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;'></div>
+<div id='GroupTime1789544700' data-col="2" data-row="27" data-time="1789544700" onmouseover='ShowSlot(1789544700,"Wed 16 Sep 2026 03:45:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789372800' data-col="0" data-row="28" data-time="1789372800" onmouseover='ShowSlot(1789372800,"Mon 14 Sep 2026 04:00:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;border-top: 1px black solid;'></div>
+<div id='GroupTime1789459200' data-col="1" data-row="28" data-time="1789459200" onmouseover='ShowSlot(1789459200,"Tue 15 Sep 2026 04:00:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;border-top: 1px black solid;'></div>
+<div id='GroupTime1789545600' data-col="2" data-row="28" data-time="1789545600" onmouseover='ShowSlot(1789545600,"Wed 16 Sep 2026 04:00:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-top: 1px black solid;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789373700' data-col="0" data-row="29" data-time="1789373700" onmouseover='ShowSlot(1789373700,"Mon 14 Sep 2026 04:15:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;'></div>
+<div id='GroupTime1789460100' data-col="1" data-row="29" data-time="1789460100" onmouseover='ShowSlot(1789460100,"Tue 15 Sep 2026 04:15:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;'></div>
+<div id='GroupTime1789546500' data-col="2" data-row="29" data-time="1789546500" onmouseover='ShowSlot(1789546500,"Wed 16 Sep 2026 04:15:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789374600' data-col="0" data-row="30" data-time="1789374600" onmouseover='ShowSlot(1789374600,"Mon 14 Sep 2026 04:30:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;border-top: 1px black dotted;'></div>
+<div id='GroupTime1789461000' data-col="1" data-row="30" data-time="1789461000" onmouseover='ShowSlot(1789461000,"Tue 15 Sep 2026 04:30:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;border-top: 1px black dotted;'></div>
+<div id='GroupTime1789547400' data-col="2" data-row="30" data-time="1789547400" onmouseover='ShowSlot(1789547400,"Wed 16 Sep 2026 04:30:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-top: 1px black dotted;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789375500' data-col="0" data-row="31" data-time="1789375500" onmouseover='ShowSlot(1789375500,"Mon 14 Sep 2026 04:45:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;'></div>
+<div id='GroupTime1789461900' data-col="1" data-row="31" data-time="1789461900" onmouseover='ShowSlot(1789461900,"Tue 15 Sep 2026 04:45:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;'></div>
+<div id='GroupTime1789548300' data-col="2" data-row="31" data-time="1789548300" onmouseover='ShowSlot(1789548300,"Wed 16 Sep 2026 04:45:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789376400' data-col="0" data-row="32" data-time="1789376400" onmouseover='ShowSlot(1789376400,"Mon 14 Sep 2026 05:00:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;border-top: 1px black solid;'></div>
+<div id='GroupTime1789462800' data-col="1" data-row="32" data-time="1789462800" onmouseover='ShowSlot(1789462800,"Tue 15 Sep 2026 05:00:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;border-top: 1px black solid;'></div>
+<div id='GroupTime1789549200' data-col="2" data-row="32" data-time="1789549200" onmouseover='ShowSlot(1789549200,"Wed 16 Sep 2026 05:00:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-top: 1px black solid;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789377300' data-col="0" data-row="33" data-time="1789377300" onmouseover='ShowSlot(1789377300,"Mon 14 Sep 2026 05:15:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;'></div>
+<div id='GroupTime1789463700' data-col="1" data-row="33" data-time="1789463700" onmouseover='ShowSlot(1789463700,"Tue 15 Sep 2026 05:15:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;'></div>
+<div id='GroupTime1789550100' data-col="2" data-row="33" data-time="1789550100" onmouseover='ShowSlot(1789550100,"Wed 16 Sep 2026 05:15:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789378200' data-col="0" data-row="34" data-time="1789378200" onmouseover='ShowSlot(1789378200,"Mon 14 Sep 2026 05:30:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;border-top: 1px black dotted;'></div>
+<div id='GroupTime1789464600' data-col="1" data-row="34" data-time="1789464600" onmouseover='ShowSlot(1789464600,"Tue 15 Sep 2026 05:30:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;border-top: 1px black dotted;'></div>
+<div id='GroupTime1789551000' data-col="2" data-row="34" data-time="1789551000" onmouseover='ShowSlot(1789551000,"Wed 16 Sep 2026 05:30:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;border-top: 1px black dotted;border-right: 1px black solid;'></div>
+</div><div style='font-size:0px;vertical-align:top;'><div id='GroupTime1789379100' data-col="0" data-row="35" data-time="1789379100" onmouseover='ShowSlot(1789379100,"Mon 14 Sep 2026 05:45:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;margin-bottom:7px;border-bottom: 1px black solid;'></div>
+<div id='GroupTime1789465500' data-col="1" data-row="35" data-time="1789465500" onmouseover='ShowSlot(1789465500,"Tue 15 Sep 2026 05:45:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #ffffff;margin-bottom:7px;border-bottom: 1px black solid;'></div>
+<div id='GroupTime1789551900' data-col="2" data-row="35" data-time="1789551900" onmouseover='ShowSlot(1789551900,"Wed 16 Sep 2026 05:45:00 PM CST");'  onmouseout='RestoreLeftSide(event);'  ontouchstart='ShowSlotByTouch(event);'  ontouchmove='ShowSlotByTouchMove(event);'  ontouchend='RestoreLeftSide(event);' style='vertical-align:top;display:inline-block;*display:inline;zoom:1;width:44px;height:9px;font-size:0px;border-left: 1px black solid;background: #77bb55;margin-bottom:7px;border-bottom: 1px black solid;border-right: 1px black solid;'></div>
+</div></div></div></div></div></div><br><br></div></div>
+
+<script>
+document.querySelector("div.GroupGrid").addEventListener('mouseleave', function() {
+    document.getElementById("SlotAvailability").style.display = 'none';
+    document.getElementById("LeftPanel").style.display = '';
+});
+</script>
+<br>
+</div>
+
+<div style="background:black;padding:5px;">
+
+<script type="text/javascript"><!--
+google_ad_client = "pub-4484057264037831";
+/* when2meet */
+google_ad_slot = "2330370708";
+google_ad_width = 468;
+google_ad_height = 60;
+//-->
+</script>
+
+<table width=100%><tr>
+<td width=100>
+
+<div style="padding-bottom:5px;font-size:12px;color:#dedede;"><nobr>Like When2meet?</nobr><br><nobr>Please click below.</nobr><br>
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+<input type="hidden" name="cmd" value="_s-xclick">
+<input type="hidden" name="hosted_button_id" value="BTG83WCAXD9F8">
+<table>
+<tr><tr><td><input type="hidden" name="on0" value="Amount"><select name="os0">
+	<option value="(1)">(1) $5.00 USD</option>
+	<option value="(2)">(2) $10.00 USD</option>
+	<option value="(3)">(3) $20.00 USD</option>
+</select> </td></tr>
+</table>
+<input type="hidden" name="currency_code" value="USD">
+<input type="image" src="https://www.when2meet.com/donate.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+<img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+</form></div>
+</td>
+
+
+<td align=center>
+<span style="padding-bottom:5px;font-size:12px;color:#dedede;">When2meet is a free service. We do not ask for contact or billing information. The below is a third-party advertisement.<br/></span>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9156670043265053"
+     crossorigin="anonymous"></script>
+<!-- 2015-04 8 degrees LLC wide ads -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:728px;height:90px"
+     data-ad-client="ca-pub-9156670043265053"
+     data-ad-slot="5740986325"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+</td>
+
+<td width=100>
+</td>
+
+</tr></table>
+
+  <script type="text/javascript">
+    (function() {
+      var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+      po.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+    })();
+  </script>
+
+</div>
+
+</body>
+</html>

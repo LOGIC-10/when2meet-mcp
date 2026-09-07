@@ -11,6 +11,8 @@ Usage:
   python server.py create --name "Weekly sync" --dates 2026-09-10 2026-09-11
   python server.py results --url "https://when2meet.com/?123-ABC"
   python server.py best --url "https://when2meet.com/?123-ABC" --min-people 2
+  python server.py vote --url "https://when2meet.com/?123-ABC" --name Alice \
+      --times 2026-09-10T09:00+08:00 2026-09-10T09:15+08:00 --tz Asia/Shanghai
 """
 import re
 import sys
@@ -22,13 +24,24 @@ from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import httpx
-from bs4 import BeautifulSoup
 
 W2M_BASE = "https://www.when2meet.com"
 SLOT_MINUTES = 15
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 POLL_ID_RE = re.compile(r"\?(\d+)-([A-Za-z0-9]+)")
 HTTP_TIMEOUT = 30.0
+WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
+            "Saturday", "Sunday"]
+
+# Markers on the poll page (the same data the site's own JS renders from).
+TIME_OF_SLOT_RE = re.compile(r"TimeOfSlot\[(\d+)\]\s*=\s*(\d+)")
+AVAILABLE_AT_SLOT_RE = re.compile(r"AvailableAtSlot\[(\d+)\]\.push\((\d+)\)")
+PEOPLE_NAME_RE = re.compile(r"PeopleNames\[(\d+)\]\s*=\s*'((?:[^'\\]|\\.)*)'")
+PEOPLE_ID_RE = re.compile(r"PeopleIDs\[(\d+)\]\s*=\s*(\d+)")
+TITLE_RE = re.compile(r"<title>(.*?)\s*-\s*When2meet</title>", re.S)
+# Days-of-the-week polls label slots "Monday 09:00:00 AM" (no calendar date).
+DOW_LABEL_RE = re.compile(r'ShowSlot\(\d+,\s*"(Monday|Tuesday|Wednesday|Thursday|'
+                          r'Friday|Saturday|Sunday) ')
 
 
 # ─── Validation helpers ─────────────────────────────────────────────
@@ -79,86 +92,98 @@ def _decode_name(raw: str) -> str:
     return re.sub(r"\\(.)", r"\1", html_lib.unescape(raw))
 
 
-def parse_grid(html: str, tz: str = "UTC") -> dict:
-    """Parse the HTML returned by AvailabilityGrids.php into structured data.
+def parse_event_page(html: str, tz: str = "UTC") -> dict:
+    """Parse a When2Meet poll page into structured availability.
 
-    The response carries one ``// hexAvailability: <hex>`` comment per
-    participant (same order as ``PeopleNames``). Each hex value encodes that
-    person's availability as a bit string in *column-major* slot order
-    (slot index = col * rows + row, i.e. the site's ``TimeOfSlot`` order),
-    with leading zeros stripped. The grid DOM, by contrast, is emitted in
-    row-major order, so the two must be mapped explicitly.
+    The page embeds exactly what the site's own JavaScript renders from:
+    ``TimeOfSlot[i]`` (epoch per 15-minute slot, chronological),
+    ``PeopleNames[i]`` / ``PeopleIDs[i]`` (paired by index) and
+    ``AvailableAtSlot[i].push(person_id)``. Because availability is keyed
+    by person *id*, there is no ordering ambiguity — unlike the
+    ``hexAvailability`` comments in AvailabilityGrids.php, which are
+    emitted in creation order while names are alphabetised.
+
+    Days-of-the-week polls carry placeholder 1978 dates; they are detected
+    and reported with ``poll_type = "days_of_week"`` and weekday labels.
     """
-    soup = BeautifulSoup(html, "html.parser")
+    slot_times = [int(t) for _, t in sorted(
+        ((int(i), t) for i, t in TIME_OF_SLOT_RE.findall(html)))]
+    if not slot_times:
+        raise RuntimeError("Poll not found (no time slots on the page): "
+                           "check the id and code in the URL")
     zone = ZoneInfo(tz)
+    is_dow = bool(DOW_LABEL_RE.search(html))
 
-    # Date column headers, in column order.
-    date_cols: list[str] = []
-    for div in soup.select(
-            "div[style*='text-align:center;font-size:10px;width:44px']"):
-        parts = div.get_text(separator=" ", strip=True).split()
-        if len(parts) >= 2:
-            date_cols.append(" ".join(parts[:2]))
+    names = {int(i): _decode_name(n) for i, n in PEOPLE_NAME_RE.findall(html)}
+    ids = {int(i): pid for i, pid in PEOPLE_ID_RE.findall(html)}
+    id_to_name = {ids[i]: names[i] for i in sorted(names) if i in ids}
+    participants = [names[i] for i in sorted(names)]
 
-    # Group-grid slot elements (one per 15-min cell).
-    gg = soup.select_one("#GroupGridSlots")
-    slot_els = gg.select("[data-time]") if gg else [
-        el for el in soup.select("[data-time]")
-        if str(el.get("id", "")).startswith("GroupTime")]
-    if not slot_els:
-        raise RuntimeError("No availability grid found in response "
-                           "(wrong poll id/code, or site markup changed)")
-    total_slots = len(slot_els)
-
-    # The bitmask is in column-major order, but columns may have different
-    # numbers of rows (e.g. a leading time-label column with fewer rows).
-    # Build cumulative per-column offsets instead of assuming equal heights.
-    col_counts: dict[int, int] = {}
-    for el in slot_els:
-        c = int(el["data-col"])
-        col_counts[c] = col_counts.get(c, 0) + 1
-    col_offsets: dict[int, int] = {}
-    running = 0
-    for c in sorted(col_counts):
-        col_offsets[c] = running
-        running += col_counts[c]
-
-    names = [_decode_name(n) for n in
-             re.findall(r"PeopleNames\[\d+\]\s*=\s*'((?:[^'\\]|\\.)*)'", html)]
-    hexes = re.findall(r"hexAvailability:\s*([0-9a-fA-F]+)", html)
-    masks = [bin(int(h, 16))[2:].zfill(total_slots) for h in hexes]
-    if any(len(m) > total_slots for m in masks):
-        raise RuntimeError("hexAvailability longer than slot count; "
-                           "site encoding may have changed")
+    free_ids: dict[int, list[str]] = {}
+    for i, pid in AVAILABLE_AT_SLOT_RE.findall(html):
+        free_ids.setdefault(int(i), []).append(pid)
 
     slots = []
-    for el in slot_els:
-        col, row = int(el["data-col"]), int(el["data-row"])
-        k = col_offsets[col] + row
-        free = [names[p] for p in range(min(len(names), len(masks)))
-                if masks[p][k] == "1"]
-        dt = datetime.fromtimestamp(int(el["data-time"]), tz=zone)
-        slots.append({
-            "time": dt.isoformat(),
-            "date": date_cols[col] if col < len(date_cols) else dt.strftime("%b %d"),
-            "free": free,
-        })
+    for i, ts in enumerate(slot_times):
+        if is_dow:
+            dt = datetime.fromtimestamp(ts, tz=timezone.utc)   # placeholder date
+            date_label = WEEKDAYS[dt.weekday()]
+        else:
+            dt = datetime.fromtimestamp(ts, tz=zone)
+            date_label = dt.date().isoformat()
+        free = sorted(id_to_name.get(pid, pid) for pid in free_ids.get(i, []))
+        slots.append({"time": dt.isoformat(), "date": date_label, "free": free})
     slots.sort(key=lambda s: s["time"])
 
+    m = TITLE_RE.search(html)
     return {
-        "participants": names,
-        "total_participants": len(names),
-        "timezone": tz,
+        "event_name": html_lib.unescape(m.group(1).strip()) if m else "",
+        "poll_type": "days_of_week" if is_dow else "specific_dates",
+        "participants": participants,
+        "participant_ids": {id_to_name[pid]: pid for pid in id_to_name},
+        "total_participants": len(participants),
+        "timezone": "UTC (placeholder dates)" if is_dow else tz,
         "slot_minutes": SLOT_MINUTES,
         "slots": slots,
     }
+
+
+def build_availability(slot_times: list[int], free_times: list[str],
+                       tz: str = "UTC") -> tuple[str, list[int]]:
+    """Turn ISO timestamps into the site's availability bit string.
+
+    Returns ``(bits, matched_epochs)`` where ``bits`` has one character per
+    slot in ``slot_times`` order. Accepts any ``datetime.fromisoformat``
+    form (offsets, ``Z``, no seconds); naive values are interpreted in
+    ``tz``. Raises ValueError listing any time that is not a poll slot.
+    """
+    zone = ZoneInfo(tz)
+    wanted: set[int] = set()
+    unmatched: list[str] = []
+    for raw in free_times:
+        try:
+            dt = datetime.fromisoformat(raw.strip().replace("Z", "+00:00"))
+        except ValueError as exc:
+            raise ValueError(f"Not an ISO 8601 timestamp: {raw!r}") from exc
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=zone)
+        epoch = int(dt.timestamp())
+        if epoch in slot_times:
+            wanted.add(epoch)
+        else:
+            unmatched.append(raw)
+    if unmatched:
+        raise ValueError("These times are not 15-minute slots of this poll "
+                         f"(use get_poll_results to list them): {unmatched}")
+    bits = "".join("1" if t in wanted else "0" for t in slot_times)
+    return bits, sorted(wanted)
 
 
 def best_windows(results: dict, min_attendees: int = 2,
                  min_duration_minutes: int = 30) -> list[dict]:
     """Find maximal contiguous windows where at least ``min_attendees`` people
     are free for the *whole* window (attendee set is the intersection across
-    every slot in the window). Pure function over ``parse_grid`` output.
+    every slot in the window). Pure function over ``parse_event_page`` output.
     """
     if min_attendees < 1:
         raise ValueError("min_attendees must be >= 1")
@@ -277,8 +302,15 @@ async def create_poll(
         return f"{W2M_BASE}/?{m.group(1)}-{m.group(2)}"
 
 
+async def _fetch_poll_page(client: httpx.AsyncClient, poll_url: str) -> str:
+    eid, code = _parse_poll_url(poll_url)
+    resp = await client.get(f"{W2M_BASE}/?{eid}-{code}")
+    resp.raise_for_status()
+    return resp.text
+
+
 async def get_poll_results(poll_url: str, tz: str = "UTC") -> dict:
-    """Read the current availability grid of an existing poll.
+    """Read the current availability of an existing poll.
 
     Use this after participants have submitted their availability to see
     who is free at each 15-minute time slot. Read-only — does not modify
@@ -289,19 +321,15 @@ async def get_poll_results(poll_url: str, tz: str = "UTC") -> dict:
         tz: IANA timezone used to render slot times. Default "UTC".
 
     Returns:
-        A dict with participants list and per-slot availability, slots
-        sorted by time.
+        A dict with event_name, poll_type, participants, participant_ids
+        and per-slot availability (slots sorted by time; ``date`` is an
+        ISO date, or a weekday name for days-of-the-week polls).
     """
-    eid, code = _parse_poll_url(poll_url)
     _check_tz(tz)
-    async with httpx.AsyncClient(timeout=HTTP_TIMEOUT) as client:
-        resp = await client.post(
-            f"{W2M_BASE}/AvailabilityGrids.php",
-            data={"id": eid, "code": code, "participantTimeZone": tz},
-            headers={"Referer": poll_url},
-        )
-        resp.raise_for_status()
-    return parse_grid(resp.text, tz)
+    async with httpx.AsyncClient(timeout=HTTP_TIMEOUT,
+                                 follow_redirects=True) as client:
+        html = await _fetch_poll_page(client, poll_url)
+    return parse_event_page(html, tz)
 
 
 async def find_best_slot(
@@ -338,66 +366,70 @@ async def vote_on_behalf(
 ) -> dict:
     """Submit availability on behalf of a participant.
 
-    Registers *name* (or reuses the existing identity if already logged in)
-    and marks the given time slots as available. Existing availability is
-    fully replaced — pass every slot the person is free for.
+    Signs in as *name* (creating the participant on first use) and marks
+    the given 15-minute slots as available. The site stores the full bit
+    string, so existing availability is **fully replaced** — pass every
+    slot the person is free for; pass an empty list to clear it.
 
     Args:
         poll_url: The When2Meet poll URL.
-        name: Display name to vote under.
-        free_times: List of ISO 8601 timestamps for 15-minute slots the
-            person is free. Use get_poll_results to list available slot
-            times, then pick the ones the person can attend.
-        password: Optional poll password. Empty string if the poll has none.
-        tz: IANA timezone for interpreting *free_times*. Default "UTC".
+        name: Participant display name.
+        free_times: ISO 8601 timestamps of slots the person is free (any
+            ``fromisoformat`` form; naive values are read in ``tz``). Use
+            get_poll_results to list valid slot times.
+        password: The participant's own password, if one was set when the
+            name was first used. Empty string otherwise.
+        tz: IANA timezone for naive ``free_times``. Default "UTC".
 
     Returns:
-        Summary dict with participant name and number of slots marked.
+        Dict with name, person_id, slots_marked and the marked times.
     """
     eid, code = _parse_poll_url(poll_url)
     if not name.strip():
         raise ValueError("name must not be empty")
-    free_iso = set(free_times)
+    _check_tz(tz)
+    referer = f"{W2M_BASE}/?{eid}-{code}"
 
-    async with httpx.AsyncClient(timeout=HTTP_TIMEOUT) as client:
-        # Load the poll page to extract TimeOfSlot[] (canonical slot list).
-        page = await client.get(poll_url)
-        time_slots = re.findall(r"TimeOfSlot\[(\d+)\]=(\d+);", page.text)
-        time_map = {int(i): int(ts) for i, ts in time_slots}
-        if not time_map:
-            raise RuntimeError("Could not load TimeOfSlot from poll page")
+    async with httpx.AsyncClient(timeout=HTTP_TIMEOUT,
+                                 follow_redirects=True) as client:
+        page = await _fetch_poll_page(client, poll_url)
+        slot_times = [int(t) for _, t in sorted(
+            ((int(i), t) for i, t in TIME_OF_SLOT_RE.findall(page)))]
+        if not slot_times:
+            raise RuntimeError("Poll not found (no time slots on the page): "
+                               "check the id and code in the URL")
+        bits, marked = build_availability(slot_times, free_times, tz)
 
-        # Register / log in; ProcessLogin returns the numeric person ID.
-        login_resp = await client.post(f"{W2M_BASE}/ProcessLogin.php", data={
-            "id": eid, "name": name, "password": password,
-        })
-        person_id = login_resp.text.strip()
+        login = await client.post(
+            f"{W2M_BASE}/ProcessLogin.php",
+            data={"id": eid, "name": name, "password": password},
+            headers={"Referer": referer})
+        login.raise_for_status()
+        person_id = login.text.strip()
+        if not person_id.isdigit():
+            raise ValueError(f"Sign-in as {name!r} failed: "
+                             f"{person_id or 'empty response'}")
 
-        # Build binary and toggle list in TimeOfSlot order.
-        zone = ZoneInfo(tz)
-        binary_parts = []
-        toggle_indices = []
-        for idx in range(len(time_map)):
-            ts = time_map[idx]
-            dt = datetime.fromtimestamp(ts, tz=timezone.utc).astimezone(zone)
-            if dt.isoformat() in free_iso:
-                binary_parts.append("1")
-                toggle_indices.append(idx)
-            else:
-                binary_parts.append("0")
-        binary = "".join(binary_parts)
+        save = await client.post(
+            f"{W2M_BASE}/SaveTimes.php",
+            data={
+                "person": person_id,
+                "event": eid,
+                "slots": ",".join(str(t) for t in marked),
+                "availability": bits,
+                "password": password,
+                "ChangeToAvailable": "true",
+            },
+            headers={"Referer": referer})
+        save.raise_for_status()
 
-        resp = await client.post(f"{W2M_BASE}/SaveTimes.php", data={
-            "person": person_id,
-            "event": eid,
-            "slots": ",".join(str(i) for i in toggle_indices),
-            "availability": binary,
-            "password": password,
-            "ChangeToAvailable": "true",
-        })
-        resp.raise_for_status()
-
-    return {"name": name, "slots_marked": len(toggle_indices)}
+    zone = ZoneInfo(tz)
+    return {
+        "name": name,
+        "person_id": person_id,
+        "slots_marked": len(marked),
+        "times": [datetime.fromtimestamp(t, tz=zone).isoformat() for t in marked],
+    }
 
 
 # ─── MCP server ─────────────────────────────────────────────────────
@@ -444,7 +476,7 @@ def run_mcp_server() -> None:
     @mcp.tool(title="Read Poll Results",
               annotations={"readOnlyHint": True})
     async def get_poll_results_tool(poll_url: str, timezone: str = "UTC") -> dict:
-        """Read who is free at each 15-min slot. Read-only."""
+        """Read who is free at each 15-min slot, plus poll name/type. Read-only."""
         try:
             return await get_poll_results(poll_url, timezone)
         except TOOL_ERRORS as exc:
@@ -471,8 +503,11 @@ def run_mcp_server() -> None:
                         timezone: str = "UTC") -> dict:
         """Mark slots as available for *name*. free_times is a list of
         ISO timestamps from get_poll_results. Fully replaces prior votes."""
-        return await vote_on_behalf(poll_url, name, free_times,
-                                    password, timezone)
+        try:
+            return await vote_on_behalf(poll_url, name, free_times,
+                                        password, timezone)
+        except TOOL_ERRORS as exc:
+            raise tool_error(str(exc)) from exc
 
     mcp.run()
 

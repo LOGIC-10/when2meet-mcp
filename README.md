@@ -50,8 +50,9 @@ python server.py results --url "https://when2meet.com/?12345-ABCDE" --tz Asia/Sh
 # Find best slots
 python server.py best --url "https://when2meet.com/?12345-ABCDE" --min-people 2 --min-minutes 30
 
-# Vote availability for a person (pass ISO timestamps from 'results')
-python server.py vote --url "https://when2meet.com/?12345-ABCDE" --name Alice   --times 2026-09-10T09:00:00+08:00 2026-09-10T09:15:00+08:00 --tz Asia/Shanghai
+# Vote on behalf of a person (times must be 15-min slots of the poll; any ISO form)
+python server.py vote --url "https://when2meet.com/?12345-ABCDE" --name Alice \
+    --times 2026-09-10T09:00+08:00 2026-09-10T09:15+08:00 --tz Asia/Shanghai
 ```
 
 ## Tools
@@ -59,9 +60,9 @@ python server.py vote --url "https://when2meet.com/?12345-ABCDE" --name Alice   
 | Tool | Description |
 |------|-------------|
 | `create_poll` | Create a new availability poll. `latest_hour` 0 or 24 means midnight. Returns the shareable URL. |
-| `get_poll_results` | Read who is free at each 15-min slot, sorted by time. Optional `timezone`. Read-only. |
+| `get_poll_results` | Read event name, poll type, participants (with ids) and who is free at each 15-min slot, sorted by time; `date` is an ISO date (weekday name for days-of-the-week polls). Optional `timezone`. Read-only. |
 | `find_best_slot` | Maximal contiguous windows where the same people are free for the whole window (attendees = intersection). Sorted by attendee count, then duration. Read-only. |
-| `vote` | Submit availability on behalf of a named participant. Pass ISO timestamps from `get_poll_results`. Fully replaces prior votes. |
+| `vote` | Submit availability on behalf of a named participant (created on first use; `password` is that participant's own). Times are ISO 8601 in any form; each must be a slot of the poll or the call is rejected. Fully replaces prior votes; an empty list clears them. |
 
 ## How It Works
 
@@ -70,23 +71,26 @@ This server is a thin Python wrapper around When2Meet's existing HTTP endpoints.
 | Endpoint | Purpose |
 |----------|---------|
 | `POST /SaveNewEvent.php` | Create a new poll |
-| `POST /AvailabilityGrids.php` | Fetch availability grid (one hex bitmask per participant, column-major slot order) |
-| `POST /ProcessLogin.php` | Register / identify a participant |
-| `POST /SaveTimes.php` | Submit availability (toggle slots by TimeOfSlot index) |
+| `GET /?<id>-<code>` | Poll page: `TimeOfSlot[]`, `PeopleNames[]`/`PeopleIDs[]`, `AvailableAtSlot[i].push(id)` — availability keyed by participant id |
+| `POST /ProcessLogin.php` | Sign in / create a participant (returns the numeric id, or "Wrong password.") |
+| `POST /SaveTimes.php` | Save availability: the site stores the full `availability` bit string (one char per `TimeOfSlot`), replacing prior state |
+
+`AvailabilityGrids.php` is deliberately **not** used for reading: its `hexAvailability` comments are emitted in participant-creation order and only for people who have saved availability, while its `PeopleNames` are alphabetised, so the two cannot be paired reliably once names and creation order differ.
 
 ## Tests
 
-Offline tests run against a recorded `AvailabilityGrids.php` response whose
-ground truth was verified on the live poll page:
+Offline tests run against five recorded poll pages (two people; six people
+whose alphabetical order differs from creation order; a poll spanning the
+US DST change with 280 slots; a days-of-the-week poll). Expected values are
+what was submitted to the site, not what the parser read back:
 
 ```bash
 pip install -r requirements-dev.txt
 python -m pytest -q
 ```
 
-The fixtures cover a 2-person/2-day poll and a 4-person/3-day poll with
-non-ASCII and apostrophe names; the tool wrappers work with both MCP SDK 1.x
-and 2.x and surface validation/HTTP errors as tool errors.
+The tool wrappers work with both MCP SDK 1.x and 2.x and surface
+validation/HTTP errors as tool errors.
 
 ## License
 
