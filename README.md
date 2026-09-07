@@ -13,6 +13,8 @@ A [Model Context Protocol](https://modelcontextprotocol.io) server for [When2Mee
 
 ### Install
 
+Requires Python 3.10 or newer (uses `zoneinfo` and `X | None` annotations). On Windows the `tzdata` package supplies the timezone database and is installed automatically.
+
 ```bash
 git clone https://github.com/LOGIC-10/when2meet-mcp.git
 cd when2meet-mcp
