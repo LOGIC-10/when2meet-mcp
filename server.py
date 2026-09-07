@@ -113,7 +113,7 @@ async def get_poll_results(poll_url: str) -> dict:
     # Participants + hex bitmask
     names = re.findall(r"PeopleNames\[\d+\]\s*=\s*'([^']+)'", html)
     hm = re.search(r"hexAvailability:\s*([0-9a-fA-F]+)", html)
-    bits = bin(int(hm.group(1)), 16)[2:].zfill(len(hm.group(1)) * 4) if hm else ""
+    bits = bin(int(hm.group(1), 16))[2:].zfill(len(hm.group(1)) * 4) if hm else ""
 
     result = []
     for i, s in enumerate(slots):
